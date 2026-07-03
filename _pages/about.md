@@ -24,10 +24,8 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-Hi, I'm **Joong-Gil Kim** 👋 *(placeholder — replace this whole section with your own bio).*
+Hello! I'm a Master's student at Korea University of Technology and Education (KOREATECH), advised by [Prof. Yong-Jae Kim](https://www.linkedin.com/in/yong-jae-kim-1398613b/) in the IRIM Lab. I received my B.S. in Mechatronics Engineering.
 
-Write one or two short paragraphs introducing yourself: your position, affiliation, and what you work on. For example: what field you're in, the problems you find interesting, and where you're currently studying or working.
+My research focuses on Reinforcement Learning, High-fidelity Simulation, and Sim-to-real transfer. I am particularly interested in training robots to learn control policies in simulation and reliably deploy them on real hardware.
 
-My research interests include <em>topic A</em>, <em>topic B</em>, and <em>topic C</em>. Add a sentence about your background, previous experience, or what you're currently focused on.
-
-Feel free to reach out via any of the links below. You can edit this bio in `_pages/about.md`, swap the photo by replacing `assets/img/prof_pic.jpg`, and manage the social links in `_data/socials.yml`.
+Feel free to reach out through any of the links below.
