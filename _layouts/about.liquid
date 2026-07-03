@@ -70,31 +70,40 @@ layout: default
       {% bibliography %}
     </div>
 
-    {% comment %} ===== EXPERIENCE (edit in _data/cv.yml -> sections.Experience) ===== {% endcomment %}
+    {% comment %} ===== EXPERIENCE (edit in _data/experience.yml) ===== {% endcomment %}
     <h2 class="section-title">Experience</h2>
-    {% assign experience = site.data.cv.cv.sections.Experience %}
+    {% assign experience = site.data.experience %}
     {% if experience and experience.size > 0 %}
       <div class="exp-list">
         {% for item in experience %}
           <div class="exp-item">
-            <div class="exp-line">
-              <span class="exp-role">{{ item.position }}</span>{% if item.company %} · <span class="exp-org">{{ item.company }}</span>{% endif %}
-              {% if item.start_date or item.end_date %}
-                <span class="exp-date">{{ item.start_date }}{% if item.end_date %} – {{ item.end_date }}{% endif %}</span>
+            {% if item.logo %}
+              <div class="exp-logo">
+                {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{% endif %}
+                <img src="{{ item.logo | prepend: '/assets/img/' | relative_url }}" alt="{{ item.company }} logo" loading="lazy">
+                {% if item.url %}</a>{% endif %}
+              </div>
+            {% endif %}
+            <div class="exp-body">
+              <div class="exp-line">
+                <span class="exp-role">{{ item.position }}</span>{% if item.company %} · <span class="exp-org">{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.company }}</a>{% else %}{{ item.company }}{% endif %}</span>{% endif %}
+                {% if item.start_date or item.end_date %}
+                  <span class="exp-date">{{ item.start_date }}{% if item.end_date %} – {{ item.end_date }}{% endif %}</span>
+                {% endif %}
+              </div>
+              {% if item.location %}<div class="exp-loc">{{ item.location }}</div>{% endif %}
+              {% if item.summary %}<p class="exp-summary">{{ item.summary }}</p>{% endif %}
+              {% if item.highlights %}
+                <ul>
+                  {% for h in item.highlights %}<li>{{ h }}</li>{% endfor %}
+                </ul>
               {% endif %}
             </div>
-            {% if item.location %}<div class="exp-loc">{{ item.location }}</div>{% endif %}
-            {% if item.summary %}<p class="exp-summary">{{ item.summary }}</p>{% endif %}
-            {% if item.highlights %}
-              <ul>
-                {% for h in item.highlights %}<li>{{ h }}</li>{% endfor %}
-              </ul>
-            {% endif %}
           </div>
         {% endfor %}
       </div>
     {% else %}
-      <p>Experience entries are managed in <code>_data/cv.yml</code> under <code>sections.Experience</code>.</p>
+      <p>Experience entries are managed in <code>_data/experience.yml</code>.</p>
     {% endif %}
 
     {% comment %} ===== PROJECTS ===== {% endcomment %}
@@ -199,7 +208,23 @@ layout: default
     border-bottom: 1px solid var(--global-divider-color);
   }
   .exp-item {
-    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+  }
+  .exp-logo {
+    flex: 0 0 auto;
+    width: 52px;
+  }
+  .exp-logo img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .exp-body {
+    flex: 1 1 0;
+    min-width: 0;
   }
   .exp-line {
     display: flex;

@@ -1,0 +1,15 @@
+# Experience entries for the homepage Experience section.
+# Rendered by _layouts/about.liquid. Kept separate from _data/cv.yml so custom
+# fields (e.g. logo) don't clash with the RenderCV schema used by the /cv/ page.
+# Order top-to-bottom = display order (put most recent first).
+
+- position: Research Intern
+  company: Neuromeka
+  url: https://www.neuromeka.com/
+  logo: neuromeka.png
+  location: Pohang, Gyeongsangbuk-do, South Korea
+  start_date: Jul 2024
+  end_date: Aug 2024
+  summary: Developed smart-factory process-automation simulations using NVIDIA Isaac Sim.
+  highlights:
+    - Worked in the Human–Robot Interaction (HRI) group, led by Dr. Minjae Kim.
