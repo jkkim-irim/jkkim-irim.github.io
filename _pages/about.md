@@ -8,10 +8,7 @@ profile:
   align: left
   image: prof_pic.png
   image_circular: false # image is already a circular crop (transparent corners)
-  more_info: >
-    <p>Your Lab / Building, Room 000</p>
-    <p>KOREATECH, 1600 Chungjeol-ro</p>
-    <p>Cheonan, Chungnam 31253, Korea</p>
+  # more_info removed — no address block under the photo
 
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page

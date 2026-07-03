@@ -1,0 +1,138 @@
+---
+layout: default
+---
+
+{% comment %}
+  Local override of al_folio_core's _layouts/about.liquid.
+  Customization: hero row = profile photo on the left, name + subtitle + bio on the right.
+  Everything below the hero (news / latest posts / selected publications / social / newsletter)
+  is kept identical to the upstream layout.
+{% endcomment %}
+
+<div class="post">
+  <article>
+    {% if page.profile and page.profile.image %}
+      {% assign profile_image_path = page.profile.image | prepend: 'assets/img/' %}
+      {% if page.profile.image_circular %}
+        {% assign profile_image_class = 'img-fluid z-depth-1 rounded-circle' %}
+      {% else %}
+        {% assign profile_image_class = 'img-fluid z-depth-1 rounded' %}
+      {% endif %}
+      {% capture sizes %}(min-width: 576px) 240px, 60vw{% endcapture %}
+      <div class="about-hero">
+        <div class="about-hero-photo">
+          {%
+            include figure.liquid loading="eager" path=profile_image_path class=profile_image_class sizes=sizes alt=page.profile.image
+            cache_bust=true
+          %}
+          {% if page.profile.more_info %}
+            <div class="more-info">{{ page.profile.more_info }}</div>
+          {% endif %}
+        </div>
+        <div class="about-hero-text">
+          <h1 class="post-title">
+            {% if site.title == 'blank' %}
+              <span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }}
+              {{ site.last_name }}
+            {% else %}
+              {{ site.title }}
+            {% endif %}
+          </h1>
+          {% if page.subtitle %}<p class="desc">{{ page.subtitle }}</p>{% endif %}
+          <div class="clearfix">{{ content }}</div>
+        </div>
+      </div>
+    {% else %}
+      <header class="post-header">
+        <h1 class="post-title">
+          {% if site.title == 'blank' %}
+            <span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }}
+            {{ site.last_name }}
+          {% else %}
+            {{ site.title }}
+          {% endif %}
+        </h1>
+        <p class="desc">{{ page.subtitle }}</p>
+      </header>
+      <div class="clearfix">{{ content }}</div>
+    {% endif %}
+
+    <!-- News -->
+    {% if page.announcements and page.announcements.enabled %}
+      <h2>
+        <a href="{{ '/news/' | relative_url }}" style="color: inherit">news</a>
+      </h2>
+      {% include news.liquid limit=true %}
+    {% endif %}
+
+    <!-- Latest posts -->
+    {% if page.latest_posts and page.latest_posts.enabled %}
+      <h2>
+        <a href="{{ '/blog/' | relative_url }}" style="color: inherit">latest posts</a>
+      </h2>
+      {% include latest_posts.liquid %}
+    {% endif %}
+
+    <!-- Selected papers -->
+    {% if page.selected_papers %}
+      <h2>
+        <a href="{{ '/publications/' | relative_url }}" style="color: inherit">selected publications</a>
+      </h2>
+      {% include selected_papers.liquid %}
+    {% endif %}
+
+    <!-- Social -->
+    {% if page.social %}
+      <div class="social">
+        <div class="contact-icons">{% social_links %}</div>
+
+        <div class="contact-note">{{ site.contact_note }}</div>
+      </div>
+    {% endif %}
+
+    {% if site.newsletter and site.newsletter.enabled and site.footer_fixed %}
+      {% if site.plugins contains 'al_newsletter' %}
+        {% include plugins/al_newsletter_form_center_margin.liquid %}
+      {% else %}
+        {% include newsletter.liquid center=true %}
+      {% endif %}
+    {% endif %}
+  </article>
+</div>
+
+<style>
+  .about-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .about-hero-photo {
+    flex: 0 0 auto;
+    width: 240px;
+    max-width: 40%;
+  }
+  .about-hero-text {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .about-hero-text .post-title {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  .about-hero-text .desc {
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 576px) {
+    .about-hero {
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      text-align: center;
+    }
+    .about-hero-photo {
+      width: 60%;
+      max-width: 240px;
+    }
+  }
+</style>
