@@ -3,14 +3,14 @@ layout: default
 ---
 
 {% comment %}
-  Local override of al_folio_core's _layouts/about.liquid.
-  Customization: hero row = profile photo on the left, name + subtitle + bio on the right.
-  Everything below the hero (news / latest posts / selected publications / social / newsletter)
-  is kept identical to the upstream layout.
+  Single-page layout for jkkim-irim's personal site (local override of al_folio_core's about.liquid).
+  Top: profile photo (left) + name / subtitle / bio / link buttons (right).
+  Then, on one page: Publications -> Experience -> Projects. No news, no nav tabs.
 {% endcomment %}
 
 <div class="post">
   <article>
+    {% comment %} ===== HERO ===== {% endcomment %}
     {% if page.profile and page.profile.image %}
       {% assign profile_image_path = page.profile.image | prepend: 'assets/img/' %}
       {% if page.profile.image_circular %}
@@ -25,9 +25,6 @@ layout: default
             include figure.liquid loading="eager" path=profile_image_path class=profile_image_class sizes=sizes alt=page.profile.image
             cache_bust=true
           %}
-          {% if page.profile.more_info %}
-            <div class="more-info">{{ page.profile.more_info }}</div>
-          {% endif %}
         </div>
         <div class="about-hero-text">
           <h1 class="post-title">
@@ -40,63 +37,76 @@ layout: default
           </h1>
           {% if page.subtitle %}<p class="desc">{{ page.subtitle }}</p>{% endif %}
           <div class="clearfix">{{ content }}</div>
+
+          {% comment %} ----- link buttons ----- {% endcomment %}
+          {% assign s = site.data.socials %}
+          <div class="about-links">
+            {% if s.github_username %}
+              <a class="btn btn-sm z-depth-0" href="https://github.com/{{ s.github_username }}" target="_blank" rel="noopener" title="GitHub">
+                <i class="fa-brands fa-github"></i> GitHub
+              </a>
+            {% endif %}
+            {% if s.linkedin_username %}
+              <a class="btn btn-sm z-depth-0" href="https://www.linkedin.com/in/{{ s.linkedin_username }}" target="_blank" rel="noopener" title="LinkedIn">
+                <i class="fa-brands fa-linkedin"></i> LinkedIn
+              </a>
+            {% endif %}
+            <a class="btn btn-sm z-depth-0" href="{{ '/cv/' | relative_url }}" title="CV">
+              <i class="ai ai-cv"></i> CV
+            </a>
+            {% if s.scholar_userid %}
+              <a class="btn btn-sm z-depth-0" href="https://scholar.google.com/citations?user={{ s.scholar_userid }}" target="_blank" rel="noopener" title="Google Scholar">
+                <i class="ai ai-google-scholar"></i> Google Scholar
+              </a>
+            {% endif %}
+          </div>
         </div>
       </div>
-    {% else %}
-      <header class="post-header">
-        <h1 class="post-title">
-          {% if site.title == 'blank' %}
-            <span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }}
-            {{ site.last_name }}
-          {% else %}
-            {{ site.title }}
-          {% endif %}
-        </h1>
-        <p class="desc">{{ page.subtitle }}</p>
-      </header>
-      <div class="clearfix">{{ content }}</div>
     {% endif %}
 
-    <!-- News -->
-    {% if page.announcements and page.announcements.enabled %}
-      <h2>
-        <a href="{{ '/news/' | relative_url }}" style="color: inherit">news</a>
-      </h2>
-      {% include news.liquid limit=true %}
-    {% endif %}
+    {% comment %} ===== PUBLICATIONS ===== {% endcomment %}
+    <h2 class="section-title">Publications</h2>
+    <div class="publications">
+      {% bibliography %}
+    </div>
 
-    <!-- Latest posts -->
-    {% if page.latest_posts and page.latest_posts.enabled %}
-      <h2>
-        <a href="{{ '/blog/' | relative_url }}" style="color: inherit">latest posts</a>
-      </h2>
-      {% include latest_posts.liquid %}
-    {% endif %}
-
-    <!-- Selected papers -->
-    {% if page.selected_papers %}
-      <h2>
-        <a href="{{ '/publications/' | relative_url }}" style="color: inherit">selected publications</a>
-      </h2>
-      {% include selected_papers.liquid %}
-    {% endif %}
-
-    <!-- Social -->
-    {% if page.social %}
-      <div class="social">
-        <div class="contact-icons">{% social_links %}</div>
-
-        <div class="contact-note">{{ site.contact_note }}</div>
+    {% comment %} ===== EXPERIENCE (edit in _data/cv.yml -> sections.Experience) ===== {% endcomment %}
+    <h2 class="section-title">Experience</h2>
+    {% assign experience = site.data.cv.cv.sections.Experience %}
+    {% if experience and experience.size > 0 %}
+      <div class="exp-list">
+        {% for item in experience %}
+          <div class="exp-item">
+            <div class="exp-line">
+              <span class="exp-role">{{ item.position }}</span>{% if item.company %} · <span class="exp-org">{{ item.company }}</span>{% endif %}
+              {% if item.start_date or item.end_date %}
+                <span class="exp-date">{{ item.start_date }}{% if item.end_date %} – {{ item.end_date }}{% endif %}</span>
+              {% endif %}
+            </div>
+            {% if item.location %}<div class="exp-loc">{{ item.location }}</div>{% endif %}
+            {% if item.summary %}<p class="exp-summary">{{ item.summary }}</p>{% endif %}
+            {% if item.highlights %}
+              <ul>
+                {% for h in item.highlights %}<li>{{ h }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
       </div>
+    {% else %}
+      <p>Experience entries are managed in <code>_data/cv.yml</code> under <code>sections.Experience</code>.</p>
     {% endif %}
 
-    {% if site.newsletter and site.newsletter.enabled and site.footer_fixed %}
-      {% if site.plugins contains 'al_newsletter' %}
-        {% include plugins/al_newsletter_form_center_margin.liquid %}
-      {% else %}
-        {% include newsletter.liquid center=true %}
-      {% endif %}
-    {% endif %}
+    {% comment %} ===== PROJECTS ===== {% endcomment %}
+    <h2 class="section-title">Projects</h2>
+    <div class="projects">
+      <div class="row row-cols-1 row-cols-md-3">
+        {% assign sorted_projects = site.projects | sort: 'importance' %}
+        {% for project in sorted_projects %}
+          {% include projects.liquid %}
+        {% endfor %}
+      </div>
+    </div>
   </article>
 </div>
 
@@ -123,6 +133,40 @@ layout: default
   .about-hero-text .desc {
     margin-bottom: 1rem;
   }
+  .about-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .about-links .btn {
+    border: 1px solid var(--global-divider-color);
+  }
+  .section-title {
+    margin-top: 2.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--global-divider-color);
+  }
+  .exp-item {
+    margin-bottom: 1.2rem;
+  }
+  .exp-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+  }
+  .exp-role {
+    font-weight: 600;
+  }
+  .exp-date {
+    color: var(--global-text-color-light);
+    white-space: nowrap;
+  }
+  .exp-loc {
+    color: var(--global-text-color-light);
+    font-size: 0.9rem;
+  }
   @media (max-width: 576px) {
     .about-hero {
       flex-direction: column;
@@ -133,6 +177,9 @@ layout: default
     .about-hero-photo {
       width: 60%;
       max-width: 240px;
+    }
+    .about-links {
+      justify-content: center;
     }
   }
 </style>
