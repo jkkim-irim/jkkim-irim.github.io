@@ -141,7 +141,10 @@ layout: default
     --global-footer-bg-color: #191713;
   }
 
-  /* ===== Venue badge colors (badge text always white) ===== */
+  /* ===== Venue badges: colored bg, text always white (light & dark) ===== */
+  /* High-specificity rule to beat gem's `.publications ... .abbr abbr { color: var(--global-card-bg-color) }`
+     which turns dark in dark mode and made badge text invisible. */
+  .publications ol.bibliography li .abbr abbr,
   .badge {
     color: #ffffff !important;
   }
