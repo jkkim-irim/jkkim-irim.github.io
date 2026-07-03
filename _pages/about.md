@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='https://www.koreatech.ac.kr/' target='_blank'>KOREATECH</a> · Your position / lab. Add a short one-line tagline here.
+subtitle: Master Student · Korea University of Technology and Education
 
 profile:
   align: left
