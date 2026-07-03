@@ -8,4 +8,4 @@ github_username: jkkim-irim # your GitHub username
 # scholar_userid: # your Google Scholar ID (from the scholar profile URL)
 # x_username: # your X (Twitter) handle without the @
 cv_pdf: /assets/pdf/example_pdf.pdf # path to your CV PDF file (replace with your own)
-rss_icon: true # comment this line to hide the RSS icon
+# rss_icon: true # blog feature removed — RSS feed disabled
