@@ -1,24 +1,6 @@
 ---
 ---
 
-@inproceedings{park2026grit,
-  abbr={IROS},
-  bibtex_show={true},
-  title={Learning Dexterous Grasping from Sparse Taxonomy Guidance},
-  author={Park, Juhan and Yoon, Taerim and Kim, Seungmin and Kim, Joong-Gil and Ye, Wontae and Park, Jeongeun and Chai, Yoonbyung and Cho, Geonwoo and Cho, Geunwoo and Kim, Dohyeong and Lee, Kyungjae and Kim, Yong-Jae and Choi, Sungjoon},
-  booktitle={IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
-  year={2026},
-  month={oct},
-  selected={true},
-  arxiv={2604.04138},
-  html={https://juhanpark.com/GRIT-project-page/},
-  video={https://youtu.be/lCDqA9PQaIA},
-  pdf={2604.04138v2.pdf},
-  preview={grit.jpg},
-  video_preview={grit_preview.mp4},
-  abstract={Dexterous manipulation requires planning a grasp configuration suited to the object and task, which is then executed through coordinated multi-finger control. However, specifying grasp plans with dense pose or contact targets for every object and task is impractical. Meanwhile, end-to-end reinforcement learning from task rewards alone lacks controllability, making it difficult for users to intervene when failures occur. To this end, we present GRIT, a two-stage framework that learns dexterous control from sparse taxonomy guidance. GRIT first predicts a taxonomy-based grasp specification from the scene and task. Conditioned on this sparse command, a policy generates continuous finger motions that accomplish the task while preserving the intended grasp structure. Our result shows that certain grasp taxonomies are more effective for specific object geometries. By leveraging this relationship, GRIT improves generalization to novel objects over baselines and achieves an overall success rate of 87.9%. Moreover, real-world experiments demonstrate controllability, enabling grasp strategies to be adjusted through high-level taxonomy selection based on object geometry and task intent.}
-}
-
 @article{kim2026toes,
   abbr={Preprint},
   bibtex_show={true},
@@ -31,4 +13,21 @@
   arxiv={2606.19699},
   pdf={2606.19699v1.pdf},
   abstract={Human legs exhibit high efficiency, agility, and impact absorption, with toes playing a crucial role in these capabilities. While many attempts have been made to implement human-like toes in robots, they have not fully replicated human characteristics nor rigorously validated their benefits. We propose a 14-DOF biped robot emulating human toes' lightweight, high-torque, robust nature. To quantitatively analyze the effectiveness of the active toes in terms of agility, efficiency, and impact absorption, we developed a high-fidelity simulation training environment that reflects actual actuators with coupled transmissions and accurate power consumption. To ensure a fair comparison between configurations with and without active toes, we designed a minimal RL reward function and applied an identical training procedure to both. The simulation results indicate that, at 1.33 m/s walking, the toe-equipped robot reduced CoT by 17.5% and heel-strike GRF by 5.0% compared with the toe-ablation configuration. On the agility test, average and maximum path deviation decreased by 25.0% and 34.0%, respectively.}
+}
+
+@inproceedings{park2026grit,
+  abbr={IROS},
+  bibtex_show={true},
+  title={Learning Dexterous Grasping from Sparse Taxonomy Guidance},
+  author={Park, Juhan and Yoon, Taerim and Kim, Seungmin and Kim, Joong-Gil and Ye, Wontae and Park, Jeongeun and Chai, Yoonbyung and Cho, Geonwoo and Cho, Geunwoo and Kim, Dohyeong and Lee, Kyungjae and Kim, Yong-Jae and Choi, Sungjoon},
+  booktitle={IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  year={2026},
+  selected={true},
+  arxiv={2604.04138},
+  html={https://juhanpark.com/GRIT-project-page/},
+  video={https://youtu.be/lCDqA9PQaIA},
+  pdf={2604.04138v2.pdf},
+  preview={grit.jpg},
+  video_preview={grit_preview.mp4},
+  abstract={Dexterous manipulation requires planning a grasp configuration suited to the object and task, which is then executed through coordinated multi-finger control. However, specifying grasp plans with dense pose or contact targets for every object and task is impractical. Meanwhile, end-to-end reinforcement learning from task rewards alone lacks controllability, making it difficult for users to intervene when failures occur. To this end, we present GRIT, a two-stage framework that learns dexterous control from sparse taxonomy guidance. GRIT first predicts a taxonomy-based grasp specification from the scene and task. Conditioned on this sparse command, a policy generates continuous finger motions that accomplish the task while preserving the intended grasp structure. Our result shows that certain grasp taxonomies are more effective for specific object geometries. By leveraging this relationship, GRIT improves generalization to novel objects over baselines and achieves an overall success rate of 87.9%. Moreover, real-world experiments demonstrate controllability, enabling grasp strategies to be adjusted through high-level taxonomy selection based on object geometry and task intent.}
 }
