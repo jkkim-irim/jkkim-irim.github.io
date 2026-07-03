@@ -5,9 +5,9 @@ permalink: /
 subtitle: <a href='https://www.koreatech.ac.kr/' target='_blank'>KOREATECH</a> · Your position / lab. Add a short one-line tagline here.
 
 profile:
-  align: right
-  image: prof_pic.jpg
-  image_circular: false # crops the image to make it circular
+  align: left
+  image: prof_pic.png
+  image_circular: false # image is already a circular crop (transparent corners)
   more_info: >
     <p>Your Lab / Building, Room 000</p>
     <p>KOREATECH, 1600 Chungjeol-ro</p>
