@@ -3,7 +3,7 @@ layout: page
 title: Toppled Vial Cylinder Removal Robot
 description: Detects and automatically removes toppled vials on a pharmaceutical vial-transfer line.
 img: assets/img/toppled-vial-robot.jpg
-importance: 2
+importance: 3
 category: work
 related_publications: false
 ---

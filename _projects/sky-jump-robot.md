@@ -3,7 +3,7 @@ layout: page
 title: Reusable Sky-Jump Robot
 description: A reusable jumping-robot concept built on Prof. Dennis Hong's Sky-Jump — 2023 Robot Idea Competition.
 img: assets/img/sky-jump-robot.jpg
-importance: 1
+importance: 2
 category: work
 related_publications: false
 ---
