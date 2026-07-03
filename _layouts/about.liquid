@@ -109,10 +109,10 @@ layout: default
     {% comment %} ===== PROJECTS ===== {% endcomment %}
     <h2 class="section-title">Projects</h2>
     <div class="projects">
-      <div class="row row-cols-1 row-cols-md-3">
+      <div class="row row-cols-1">
         {% assign sorted_projects = site.projects | sort: 'importance' %}
         {% for project in sorted_projects %}
-          {% include projects.liquid %}
+          {% include projects_horizontal.liquid %}
         {% endfor %}
       </div>
     </div>
