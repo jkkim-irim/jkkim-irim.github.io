@@ -3,9 +3,9 @@
 # for more information, please refer to the documentation of jekyll-socials plugin: https://github.com/george-gca/jekyll-socials
 email: giribboy97@koreatech.ac.kr # your email address
 github_username: jkkim-irim # your GitHub username
-# linkedin_username: # your LinkedIn username (the part after /in/)
+linkedin_username: joong-gil-kim-57b36a275 # your LinkedIn username (the part after /in/)
 # orcid_id: # your ORCID iD (e.g. 0000-0000-0000-0000)
-# scholar_userid: # your Google Scholar ID (from the scholar profile URL)
+scholar_userid: WMpmJ_4AAAAJ # your Google Scholar ID (from the scholar profile URL)
 # x_username: # your X (Twitter) handle without the @
 cv_pdf: /assets/pdf/example_pdf.pdf # path to your CV PDF file (replace with your own)
 # rss_icon: true # blog feature removed — RSS feed disabled
