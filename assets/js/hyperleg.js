@@ -27,10 +27,10 @@ const CONFIG = {
     toeAmp: [0.12, 0.28],
     bob: 0.035,          // vertical bob (fraction of robot height) at 2× cadence
     // ---- claw-machine grab: click the robot → it dangles from the cursor, release → falls ----
-    grabHangFrac: 0.72,  // pivot-to-centre distance as a fraction of robot height (longer = lazier swing)
+    grabHangFrac: 0.3,   // pivot-to-centre distance as a fraction of robot height
     pendGravity: 15,     // pendulum restoring toward hanging-down (lower = wider, slower swing)
     pendDamp: 0.6,       // angular damping (per second) — low so it keeps dangling
-    pendDrive: 2.8,      // how much cursor motion swings it
+    pendDrive: 2.0,      // how much cursor motion swings it
     fallGravity: 9.81,   // world units/s² when dropped
     fallBounce: 0.28,    // bounce factor on landing
     // per-joint sign so both legs bend the same way (tuned via render)
@@ -232,14 +232,16 @@ async function initWalker(canvas) {
     window.__hlRelease = release;
 
     let posX = 0, faceDir = 1, phase = 0, last = performance.now(), seeded = false;
-    let running = true;
-    document.addEventListener('visibilitychange', () => { running = !document.hidden; last = performance.now(); if (running) animate(); });
+    // Only reset the dt baseline when returning to the tab. Do NOT restart animate()
+    // here — the single rAF loop resumes on its own; restarting stacks duplicate loops
+    // (which produced dt≈0 frames → divide-by-zero → NaN position → robot vanished).
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) last = performance.now(); });
 
     function animate() {
-        if (!running) return;
         requestAnimationFrame(animate);
         const now = performance.now();
         let dt = (now - last) / 1000; last = now;
+        if (!(dt > 0)) dt = 1 / 60;        // guard dt<=0/NaN so nothing divides by zero
         dt = Math.min(dt, 0.05);
 
         if (!fitted) { tryFit(); renderer.render(scene, camera); return; }
@@ -257,6 +259,7 @@ async function initWalker(canvas) {
             omega = THREE.MathUtils.clamp(omega, -9, 9);
             theta = THREE.MathUtils.clamp(theta + omega * dt, -1.4, 1.4);
             if (Math.abs(theta) >= 1.4) omega = 0; // don't build up against the limit
+            if (!isFinite(theta) || !isFinite(omega)) { theta = 0; omega = 0; } // safety: never let NaN persist
             poseHang();
             mover.position.set(_cw.x, _cw.y, 0);
             swing.rotation.z = theta;
