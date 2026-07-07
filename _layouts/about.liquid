@@ -158,20 +158,15 @@ layout: default
 </div>
 
 <style>
-  /* ===== Robot avatar canvas (Franka Panda arm, lower-right) ===== */
+  /* ===== Robot avatar canvas (ALLEX hand, follows the cursor on top) ===== */
   #robot-canvas {
     position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;            /* behind page content, above the page background */
+    z-index: 3000;         /* always on top (above nav/footer at z 1030) */
     pointer-events: none;  /* never blocks clicks/selection */
-    opacity: 0.95;
-  }
-  /* Keep the page content above the robot canvas. */
-  .post {
-    position: relative;
-    z-index: 1;
+    opacity: 1;
   }
 
   /* ===== Claude-inspired warm palette (overrides al-folio theme vars) ===== */
