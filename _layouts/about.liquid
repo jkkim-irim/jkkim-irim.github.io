@@ -19,19 +19,30 @@ layout: default
   decoded via DRACOLoader — CSP relaxed in _includes/head.liquid to allow its
   blob worker + WASM). Model: ALLEX by WIRobotics (right-hand subtree).
 {% endcomment %}
-{% comment %} Warm up the CDNs (three, urdf-loader, Draco decoder) and prefetch the module + URDF. {% endcomment %}
+{% comment %}
+  A second avatar — the HyperLeg biped — walks along the bottom of the viewport
+  following the cursor's X (run when far, walk when near), rendered BEHIND the
+  page content. Its model is extracted from HyperLeg.usd → URDF + Draco meshes.
+{% endcomment %}
+{% comment %} Warm up the CDNs (three, urdf-loader, Draco decoder) and prefetch the modules + URDFs. {% endcomment %}
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://esm.sh" crossorigin>
 <link rel="modulepreload" href="{{ '/assets/js/allex.js' | relative_url }}">
+<link rel="modulepreload" href="{{ '/assets/js/hyperleg.js' | relative_url }}">
 <link rel="preload" href="{{ '/assets/models/allex/ALLEX_Right_Hand.urdf' | relative_url }}" as="fetch" crossorigin>
+<link rel="preload" href="{{ '/assets/models/hyperleg/HyperLeg.urdf' | relative_url }}" as="fetch" crossorigin>
 <canvas id="robot-canvas"></canvas>
+<canvas id="hyperleg-canvas"></canvas>
 <script>
-  // Baseurl-safe asset path, and reparent the canvas to <body> so it lives in
-  // the root stacking context (behind page content, which we keep at z-index 1).
+  // Baseurl-safe asset paths; reparent both canvases to <body> so they live in
+  // the root stacking context (hand on top at z 3000, walker behind at z 0).
   window.ALLEX_ASSETS = "{{ '/assets/models/allex/' | relative_url }}";
+  window.HYPERLEG_ASSETS = "{{ '/assets/models/hyperleg/' | relative_url }}";
   (function () {
-    var c = document.getElementById('robot-canvas');
-    if (c && c.parentNode !== document.body) document.body.appendChild(c);
+    ['robot-canvas', 'hyperleg-canvas'].forEach(function (id) {
+      var c = document.getElementById(id);
+      if (c && c.parentNode !== document.body) document.body.appendChild(c);
+    });
   })();
 </script>
 <script type="importmap">
@@ -45,6 +56,7 @@ layout: default
 }
 </script>
 <script type="module" src="{{ '/assets/js/allex.js' | relative_url }}"></script>
+<script type="module" src="{{ '/assets/js/hyperleg.js' | relative_url }}"></script>
 
 <div class="post">
   <article>
@@ -158,7 +170,8 @@ layout: default
 </div>
 
 <style>
-  /* ===== Robot avatar canvas (ALLEX hand, follows the cursor on top) ===== */
+  /* ===== Robot avatars ===== */
+  /* ALLEX hand — always on top of everything */
   #robot-canvas {
     position: fixed;
     inset: 0;
@@ -168,6 +181,18 @@ layout: default
     pointer-events: none;  /* never blocks clicks/selection */
     opacity: 1;
   }
+  /* HyperLeg walker — pinned to the bottom, behind page content */
+  #hyperleg-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;            /* behind content */
+    pointer-events: none;
+    opacity: 0.95;
+  }
+  /* keep page content above the walker (hand stays above at z 3000) */
+  .post { position: relative; z-index: 1; }
 
   /* ===== Claude-inspired warm palette (overrides al-folio theme vars) ===== */
   :root {
