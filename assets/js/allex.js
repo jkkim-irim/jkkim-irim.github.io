@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import URDFLoader from 'urdf-loader';
-import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 /* ----------------------------------------------------------------------------
  * ALLEX right hand that follows the cursor.
@@ -71,15 +71,19 @@ async function initHand(canvas) {
     const loader = new URDFLoader(manager);
     loader.packages = { allex_description: ASSET_BASE.replace(/\/$/, '') };
     loader.parseCollision = false;
-    // Meshes are decimated binary STL. (Draco .drc would be ~40× smaller but the
-    // site CSP blocks its Web Worker + WASM — see notes; revisit if CSP is relaxed.)
-    const stl = new STLLoader(manager);
+    // Meshes are Draco-compressed .drc (~40× smaller than STL; ~180 KB total). The
+    // URDF still references .stl, so rewrite the path in the load callback. Draco's
+    // blob Web Worker + WASM are allowed by the relaxed CSP in _includes/head.liquid.
+    const draco = new DRACOLoader(manager);
+    draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+    draco.setDecoderConfig({ type: 'wasm' });
     loader.loadMeshCb = (path, mgr, done) => {
-        stl.load(path, (geo) => {
+        const url = path.replace(/\.stl$/i, '.drc');
+        draco.load(url, (geo) => {
             geo.computeVertexNormals();
-            const mat = new THREE.MeshStandardMaterial({ color: colorFor(path.split('/').pop()), roughness: 0.6, metalness: 0.15 });
+            const mat = new THREE.MeshStandardMaterial({ color: colorFor(url.split('/').pop()), roughness: 0.6, metalness: 0.15 });
             done(new THREE.Mesh(geo, mat));
-        }, undefined, (e) => { console.error('[allex] mesh failed:', path.split('/').pop()); done(null, e); });
+        }, undefined, (e) => { console.error('[allex] mesh failed:', url.split('/').pop()); done(null, e); });
     };
     const allLoaded = new Promise(res => { manager.onLoad = res; });
 
