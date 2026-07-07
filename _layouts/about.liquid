@@ -15,10 +15,10 @@ layout: default
   on the page (al-folio's ninja-keys search loads later in <body>), so this block
   sits at the top of the content. allex.js is deferred (type=module) and disables
   itself on mobile / prefers-reduced-motion. The index fingertip tracks the cursor
-  and curls while the mouse is held. Meshes are Draco-compressed .drc (~180 KB total).
+  and curls while the mouse is held. Meshes are decimated binary STL (~7.6 MB).
   Model: ALLEX by WIRobotics (right-hand subtree).
 {% endcomment %}
-{% comment %} Warm up the CDNs (three, urdf-loader, Draco decoder) and prefetch the module + URDF. {% endcomment %}
+{% comment %} Warm up the CDNs (three, urdf-loader) and prefetch the module + URDF. {% endcomment %}
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://esm.sh" crossorigin>
 <link rel="modulepreload" href="{{ '/assets/js/allex.js' | relative_url }}">
