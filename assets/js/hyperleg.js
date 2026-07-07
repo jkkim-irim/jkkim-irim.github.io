@@ -12,8 +12,8 @@ const ASSET_BASE = (typeof window !== 'undefined' && window.HYPERLEG_ASSETS) || 
 const URDF_PATH = `${ASSET_BASE}HyperLeg.urdf`;
 
 const CONFIG = {
-    scaleFrac: 0.192,    // robot height as fraction of viewport height (≈60% of the original 0.32)
-    footMargin: 0.02,    // fraction of viewport height the feet sit above the very bottom
+    scaleFrac: 0.211,    // robot height as fraction of viewport height (~10% larger than 0.192)
+    footMargin: 0.08,    // fraction of viewport height the feet sit above the very bottom (raised so feet stay visible)
     ease: 0.06,          // horizontal follow smoothing
     kSpeed: 2.2,         // world units/sec of walk speed per world unit of distance
     maxSpeed: 3.2,       // cap (world units/sec)
