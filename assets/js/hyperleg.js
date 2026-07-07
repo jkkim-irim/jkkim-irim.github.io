@@ -27,11 +27,11 @@ const CONFIG = {
     toeAmp: [0.12, 0.28],
     bob: 0.035,          // vertical bob (fraction of robot height) at 2× cadence
     // ---- claw-machine grab: click the robot → it dangles from the cursor, release → falls ----
-    grabHangFrac: 0.55,  // pivot-to-centre distance as a fraction of robot height
-    pendGravity: 20,     // pendulum restoring toward hanging-down
-    pendDamp: 3.0,       // angular damping (per second)
-    pendDrive: 0.9,      // how much cursor horizontal acceleration swings it
-    fallGravity: 9.0,    // world units/s² when dropped
+    grabHangFrac: 0.72,  // pivot-to-centre distance as a fraction of robot height (longer = lazier swing)
+    pendGravity: 15,     // pendulum restoring toward hanging-down (lower = wider, slower swing)
+    pendDamp: 0.6,       // angular damping (per second) — low so it keeps dangling
+    pendDrive: 2.8,      // how much cursor motion swings it
+    fallGravity: 9.81,   // world units/s² when dropped
     fallBounce: 0.28,    // bounce factor on landing
     // per-joint sign so both legs bend the same way (tuned via render)
     sign: { HP: { L: 1, R: 1 }, KN: { L: 1, R: 1 }, AK: { L: 1, R: 1 }, TO: { L: 1, R: 1 } },
@@ -251,10 +251,12 @@ async function initWalker(canvas) {
         if (state === 'held') {
             // dangle from the cursor: driven, damped pendulum
             cursorWorld(_cw);
-            const curVX = (_cw.x - prevCurX) / dt; prevCurX = _cw.x;
+            const curVX = THREE.MathUtils.clamp((_cw.x - prevCurX) / dt, -6, 6); prevCurX = _cw.x;
             omega += (-CONFIG.pendGravity * Math.sin(theta) - CONFIG.pendDrive * curVX * Math.cos(theta)) * dt;
             omega -= omega * Math.min(CONFIG.pendDamp * dt, 1);
-            theta = THREE.MathUtils.clamp(theta + omega * dt, -1.3, 1.3);
+            omega = THREE.MathUtils.clamp(omega, -9, 9);
+            theta = THREE.MathUtils.clamp(theta + omega * dt, -1.4, 1.4);
+            if (Math.abs(theta) >= 1.4) omega = 0; // don't build up against the limit
             poseHang();
             mover.position.set(_cw.x, _cw.y, 0);
             swing.rotation.z = theta;
