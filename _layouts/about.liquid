@@ -8,6 +8,36 @@ layout: default
   Then, on one page: Publications -> Experience -> Projects. No news, no nav tabs.
 {% endcomment %}
 
+{% comment %}
+  ===== Robot avatar: Franka Emika Panda arm that follows the cursor =====
+  three.js + urdf-loader (CDN, importmap). Model assets live under
+  /assets/models/. The importmap must precede the first ES module script on the
+  page (al-folio's ninja-keys search loads later in <body>), so this block sits
+  at the top of the content. robot.js is deferred (type=module) and disables
+  itself on mobile / prefers-reduced-motion. Adapted from github.com/jellyho.
+{% endcomment %}
+<canvas id="robot-canvas"></canvas>
+<script>
+  // Baseurl-safe asset path, and reparent the canvas to <body> so it lives in
+  // the root stacking context (behind page content, which we keep at z-index 1).
+  window.ROBOT_ASSETS = "{{ '/assets/models/' | relative_url }}";
+  (function () {
+    var c = document.getElementById('robot-canvas');
+    if (c && c.parentNode !== document.body) document.body.appendChild(c);
+  })();
+</script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://esm.sh/urdf-loader@0.12.6?external=three"
+  }
+}
+</script>
+<script type="module" src="{{ '/assets/js/robot.js' | relative_url }}"></script>
+
 <div class="post">
   <article>
     {% comment %} ===== HERO ===== {% endcomment %}
@@ -120,6 +150,22 @@ layout: default
 </div>
 
 <style>
+  /* ===== Robot avatar canvas (Franka Panda arm, lower-right) ===== */
+  #robot-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;            /* behind page content, above the page background */
+    pointer-events: none;  /* never blocks clicks/selection */
+    opacity: 0.95;
+  }
+  /* Keep the page content above the robot canvas. */
+  .post {
+    position: relative;
+    z-index: 1;
+  }
+
   /* ===== Claude-inspired warm palette (overrides al-folio theme vars) ===== */
   :root {
     --global-bg-color: #faf9f5;
