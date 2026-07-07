@@ -27,9 +27,9 @@ const CONFIG = {
     toeAmp: [0.12, 0.28],
     bob: 0.035,          // vertical bob (fraction of robot height) at 2× cadence
     // ---- claw-machine grab: click the robot → it dangles from the cursor, release → falls ----
-    grabHangFrac: 0.3,   // pivot-to-centre distance as a fraction of robot height
+    grabHangFrac: 0.55,  // pivot-to-centre distance as a fraction of robot height
     pendGravity: 15,     // pendulum restoring toward hanging-down (lower = wider, slower swing)
-    pendDamp: 0.6,       // angular damping (per second) — low so it keeps dangling
+    pendDamp: 0.3,       // angular damping (per second) — very low so it keeps dangling for a while
     pendDrive: 2.0,      // how much cursor motion swings it
     fallGravity: 9.81,   // world units/s² when dropped
     fallBounce: 0.28,    // bounce factor on landing
