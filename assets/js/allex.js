@@ -6,7 +6,8 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js';
  * ALLEX right hand that follows the cursor.
  *  - Middle/Ring/Little fingers curled (~0/90/90), Index + Thumb extended
  *    → a "pointing" hand.
- *  - On mouse click, the index finger flicks (a click/tap gesture).
+ *  - Hold the mouse to curl the index; release to extend. The fingertip stays
+ *    anchored to the cursor as it bends (the whole hand follows the point).
  *  - Flat, clean lighting; disabled on mobile / prefers-reduced-motion.
  * Model: ALLEX by WIRobotics (URDF trimmed to the R_Wrist_Pitch subtree).
  * -------------------------------------------------------------------------- */
@@ -24,8 +25,8 @@ const CONFIG = {
     curlMCP: Math.PI / 2,    // 90°
     curlPIP: Math.PI / 2,    // 90°
     curlSign: 1,             // flip if fingers bend the wrong way
-    flickMs: 260,            // index flick duration
-    flickPeak: 1.1,          // radians the index MCP bends at the peak of a flick
+    pressBend: 1.1,          // radians the index MCP bends while the mouse is held down
+    bendEase: 0.3,           // how quickly the index bends/springs back
 };
 
 const CURLED = ['Middle', 'Ring', 'Little'];
@@ -103,7 +104,7 @@ async function initHand(canvas) {
             // DIP is coupled (mimic) but set explicitly in case loader ignores mimic
             setJ(`R_${f}_DIP_Joint`, sign * CONFIG.curlPIP * 0.656296489);
         }
-        // Index: extended, except the transient flick on MCP
+        // Index: extended; bends at the MCP (+coupled PIP/DIP) while held
         setJ('R_Index_ABAD_Joint', 0);
         setJ('R_Index_MCP_Joint', sign * indexMCP);
         setJ('R_Index_PIP_Joint', sign * indexMCP * 0.6);
@@ -151,14 +152,19 @@ async function initHand(canvas) {
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // ---- index flick on click ----
-    let flickStart = -1e9;
-    window.addEventListener('pointerdown', () => { flickStart = performance.now(); });
-    // allow harness to trigger a flick
-    window.__allexFlick = () => { flickStart = performance.now(); };
+    // ---- index bends while the mouse is held, springs back on release ----
+    let pressed = false;
+    let idxCur = 0;
+    window.addEventListener('pointerdown', () => { pressed = true; });
+    window.addEventListener('pointerup', () => { pressed = false; });
+    window.addEventListener('pointercancel', () => { pressed = false; });
+    window.addEventListener('blur', () => { pressed = false; });
+    // harness hook: force the pressed state
+    window.__allexPress = (v) => { pressed = !!v; };
 
     const target = new THREE.Vector3();
     const smooth = new THREE.Vector3();
+    const _tipW = new THREE.Vector3();
     let seeded = false;
     function mouseWorld(out) {
         out.set(pointer.x, -pointer.y, 0.5).unproject(camera);
@@ -173,24 +179,30 @@ async function initHand(canvas) {
     function animate() {
         if (!running) return;
         requestAnimationFrame(animate);
-        mouseWorld(target);
-        if (!seeded) { smooth.copy(target); seeded = true; }
-        smooth.lerp(target, CONFIG.ease);
-        follow.position.copy(smooth);
+
+        // 1. index bends toward pressBend while held, eases back to 0 on release
+        let tgt = pressed ? CONFIG.pressBend : 0;
+        if (typeof window.__allexHoldIndex === 'number') tgt = window.__allexHoldIndex; // debug/verify
+        idxCur += (tgt - idxCur) * CONFIG.bendEase;
+        poseFingers(idxCur);
+
+        // 2. aim the hand
         follow.rotation.z = (typeof window.__allexRoll === 'number') ? window.__allexRoll : CONFIG.roll;
         const tw = (typeof window.__allexTwist === 'number') ? window.__allexTwist : CONFIG.twist;
         twist.setRotationFromAxisAngle(indexAxis, tw);
         if (Array.isArray(window.__allexEuler)) orient.rotation.set(...window.__allexEuler); // debug
 
-        // flick curve: 0 -> peak -> 0
-        const dt = performance.now() - flickStart;
-        let idx = 0;
-        if (dt >= 0 && dt < CONFIG.flickMs) {
-            const p = dt / CONFIG.flickMs;
-            idx = Math.sin(p * Math.PI) * CONFIG.flickPeak; // smooth up-and-back
-        }
-        if (typeof window.__allexHoldIndex === 'number') idx = window.__allexHoldIndex; // debug/verify
-        poseFingers(idx);
+        // 3. eased cursor target on the z=0 plane
+        mouseWorld(target);
+        if (!seeded) { smooth.copy(target); seeded = true; }
+        smooth.lerp(target, CONFIG.ease);
+
+        // 4. dynamic anchor: shift the whole hand so the index FINGERTIP lands on
+        //    the cursor point — even as the finger bends, the tip stays aligned and
+        //    the hand follows toward the point (one-step exact solve, no feedback).
+        follow.updateMatrixWorld(true);
+        tipLink.getWorldPosition(_tipW);
+        follow.position.add(smooth).sub(_tipW);
 
         renderer.render(scene, camera);
     }
