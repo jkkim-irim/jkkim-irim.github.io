@@ -13,7 +13,7 @@ const URDF_PATH = `${ASSET_BASE}HyperLeg.urdf`;
 
 const CONFIG = {
     scaleFrac: 0.211,    // robot height as fraction of viewport height (~10% larger than 0.192)
-    footMargin: 0.08,    // fraction of viewport height the feet sit above the very bottom (raised so feet stay visible)
+    footMargin: 0.04,    // fraction of viewport height the feet sit above the very bottom (just above the footer)
     ease: 0.06,          // horizontal follow smoothing
     kSpeed: 2.2,         // world units/sec of walk speed per world unit of distance
     maxSpeed: 3.2,       // cap (world units/sec)
@@ -26,6 +26,13 @@ const CONFIG = {
     ankleAmp: [0.18, 0.35],
     toeAmp: [0.12, 0.28],
     bob: 0.035,          // vertical bob (fraction of robot height) at 2× cadence
+    // ---- claw-machine grab: click the robot → it dangles from the cursor, release → falls ----
+    grabHangFrac: 0.55,  // pivot-to-centre distance as a fraction of robot height
+    pendGravity: 20,     // pendulum restoring toward hanging-down
+    pendDamp: 3.0,       // angular damping (per second)
+    pendDrive: 0.9,      // how much cursor horizontal acceleration swings it
+    fallGravity: 9.0,    // world units/s² when dropped
+    fallBounce: 0.28,    // bounce factor on landing
     // per-joint sign so both legs bend the same way (tuned via render)
     sign: { HP: { L: 1, R: 1 }, KN: { L: 1, R: 1 }, AK: { L: 1, R: 1 }, TO: { L: 1, R: 1 } },
 };
@@ -67,10 +74,11 @@ async function initWalker(canvas) {
     scene.add(new THREE.AmbientLight(0xffffff, 0.5));
     const key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(0.5, 1.5, 2); scene.add(key);
 
-    const mover = new THREE.Group();   // positioned along the bottom (x follows cursor)
+    const mover = new THREE.Group();   // world position of the grab pivot / body
+    const swing = new THREE.Group();   // pendulum rotation while grabbed
     const facer = new THREE.Group();   // yaw: faces walking direction
     const fit = new THREE.Group();     // base orientation + scale, centered
-    mover.add(facer); facer.add(fit); scene.add(mover);
+    mover.add(swing); swing.add(facer); facer.add(fit); scene.add(mover);
 
     const manager = new THREE.LoadingManager();
     const loader = new URDFLoader(manager);
@@ -164,13 +172,53 @@ async function initWalker(canvas) {
         if (fitted) applyScale();
     });
 
-    // ---- cursor tracking (x only) ----
-    const pointer = { x: 0 };
-    window.addEventListener('pointermove', (e) => { pointer.x = (e.clientX / window.innerWidth) * 2 - 1; });
-    function cursorWorldX() {
-        const { vW } = viewport();
-        return pointer.x * (vW / 2);
+    // ---- cursor tracking (x and y, NDC) ----
+    const pointer = { x: 0, y: 0 };
+    window.addEventListener('pointermove', (e) => {
+        pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    });
+    function cursorWorldX() { return pointer.x * (viewport().vW / 2); }
+    const _cw = new THREE.Vector3();
+    function cursorWorld(out) { // unproject cursor onto the z=0 plane
+        out.set(pointer.x, pointer.y, 0.5).unproject(camera);
+        out.sub(camera.position).normalize();
+        out.multiplyScalar((0 - camera.position.z) / out.z).add(camera.position);
     }
+
+    // limp "grabbed" leg pose (gentle dangle)
+    function poseHang() {
+        for (const side of ['L', 'R']) {
+            const s = CONFIG.sign;
+            setJ(`${side}_HP`, s.HP[side] * 0.12);
+            setJ(`${side}_KN`, s.KN[side] * 0.45);
+            setJ(`${side}_AK`, s.AK[side] * 0.10);
+            setJ(`${side}_TO`, 0); setJ(`${side}_HY`, 0); setJ(`${side}_HR`, 0);
+        }
+    }
+
+    // ---- grab / release (canvas is pointer-events:none, so listen on window + raycast) ----
+    const raycaster = new THREE.Raycaster();
+    let state = 'walk';                 // 'walk' | 'held' | 'fall'
+    let theta = 0, omega = 0;           // pendulum angle + angular velocity
+    let grabX = 0, fallVY = 0, prevCurX = 0, hangL = 0;
+    function hitsRobot() {
+        raycaster.setFromCamera({ x: pointer.x, y: pointer.y }, camera);
+        return raycaster.intersectObject(mover, true).length > 0;
+    }
+    window.addEventListener('pointerdown', () => {
+        if (!fitted || state !== 'walk') return;
+        if (hitsRobot()) { state = 'held'; theta = 0; omega = 0; cursorWorld(_cw); prevCurX = _cw.x; }
+    });
+    function release() {
+        if (state !== 'held') return;
+        state = 'fall'; fallVY = 0;      // start dropping from the current dangling height
+    }
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    window.addEventListener('blur', release);
+    window.__hlGrab = () => { if (fitted) { state = 'held'; theta = 0; omega = 0; } }; // harness hook
+    window.__hlRelease = release;
 
     let posX = 0, faceDir = 1, phase = 0, last = performance.now(), seeded = false;
     let running = true;
@@ -185,30 +233,54 @@ async function initWalker(canvas) {
 
         if (!fitted) { tryFit(); renderer.render(scene, camera); return; }
 
-        const tgtX = (typeof window.__hlTargetX === 'number') ? window.__hlTargetX : cursorWorldX();
-        if (!seeded) { posX = tgtX; seeded = true; }
-        const dx = tgtX - posX;
-        const dist = Math.abs(dx);
-        let speed = dist > CONFIG.arriveDist ? Math.min(dist * CONFIG.kSpeed, CONFIG.maxSpeed) : 0;
-        if (dist > CONFIG.arriveDist) { faceDir = Math.sign(dx); }
-        posX += Math.sign(dx) * Math.min(speed * dt, dist);
-
-        // advance gait phase proportional to distance travelled
-        phase += speed * CONFIG.cadence * dt;
-        const speedNorm = speed / CONFIG.maxSpeed;
-
-        // debug overrides
-        const ph = (typeof window.__hlPhase === 'number') ? window.__hlPhase : phase;
-        const sn = (typeof window.__hlSpeedNorm === 'number') ? window.__hlSpeedNorm : speedNorm;
-        poseGait(ph, sn);
-
-        // place along the bottom, facing walk direction, with a vertical bob
         const { vH } = viewport();
-        const groundY = -vH / 2 + CONFIG.footMargin * vH + robotScreenH / 2;
-        const bob = CONFIG.bob * robotScreenH * sn * Math.abs(Math.sin(ph));
-        mover.position.set((typeof window.__hlPosX === 'number') ? window.__hlPosX : posX, groundY + bob, 0);
-        facer.rotation.y = faceDir >= 0 ? 0 : Math.PI;
+        const centerY = -vH / 2 + CONFIG.footMargin * vH + robotScreenH / 2; // body-centre Y when standing
+        hangL = CONFIG.grabHangFrac * robotScreenH;                          // pivot → body-centre distance
 
+        if (state === 'held') {
+            // dangle from the cursor: driven, damped pendulum
+            cursorWorld(_cw);
+            const curVX = (_cw.x - prevCurX) / dt; prevCurX = _cw.x;
+            omega += (-CONFIG.pendGravity * Math.sin(theta) - CONFIG.pendDrive * curVX * Math.cos(theta)) * dt;
+            omega -= omega * Math.min(CONFIG.pendDamp * dt, 1);
+            theta = THREE.MathUtils.clamp(theta + omega * dt, -1.3, 1.3);
+            poseHang();
+            mover.position.set(_cw.x, _cw.y, 0);
+            swing.rotation.z = theta;
+            facer.position.y = -hangL;
+            grabX = _cw.x;
+        } else if (state === 'fall') {
+            // drop under gravity back to the ground, then resume walking
+            fallVY -= CONFIG.fallGravity * dt;
+            let py = mover.position.y + fallVY * dt;
+            const landY = centerY + hangL;
+            poseHang();
+            theta += (0 - theta) * Math.min(8 * dt, 1); swing.rotation.z = theta;
+            facer.position.y = -hangL;
+            if (py <= landY) {
+                if (Math.abs(fallVY) > 0.6) { py = landY; fallVY = -fallVY * CONFIG.fallBounce; }
+                else { py = landY; state = 'walk'; posX = grabX; theta = 0; omega = 0; }
+            }
+            mover.position.set(grabX, py, 0);
+        } else { // 'walk'
+            const tgtX = (typeof window.__hlTargetX === 'number') ? window.__hlTargetX : cursorWorldX();
+            if (!seeded) { posX = tgtX; seeded = true; }
+            const dx = tgtX - posX;
+            const dist = Math.abs(dx);
+            const speed = dist > CONFIG.arriveDist ? Math.min(dist * CONFIG.kSpeed, CONFIG.maxSpeed) : 0;
+            if (dist > CONFIG.arriveDist) faceDir = Math.sign(dx);
+            posX += Math.sign(dx) * Math.min(speed * dt, dist);
+            phase += speed * CONFIG.cadence * dt;
+            const speedNorm = speed / CONFIG.maxSpeed;
+            const ph = (typeof window.__hlPhase === 'number') ? window.__hlPhase : phase;
+            const sn = (typeof window.__hlSpeedNorm === 'number') ? window.__hlSpeedNorm : speedNorm;
+            poseGait(ph, sn);
+            const bob = CONFIG.bob * robotScreenH * sn * Math.abs(Math.sin(ph));
+            mover.position.set((typeof window.__hlPosX === 'number') ? window.__hlPosX : posX, centerY + bob, 0);
+            swing.rotation.z = 0;
+            facer.position.y = 0;
+        }
+        facer.rotation.y = faceDir >= 0 ? 0 : Math.PI;
         renderer.render(scene, camera);
         window.__hlReady = true;
     }
