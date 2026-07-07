@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<robot name="HyperLeg">
+  <link name="torso">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/torso.stl"/></geometry></visual>
+  </link>
+  <link name="l_hy">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_hy.stl"/></geometry></visual>
+  </link>
+  <link name="l_hr">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_hr.stl"/></geometry></visual>
+  </link>
+  <link name="l_hp">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_hp.stl"/></geometry></visual>
+  </link>
+  <link name="l_kn">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_kn.stl"/></geometry></visual>
+  </link>
+  <link name="l_ak">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_ak.stl"/></geometry></visual>
+  </link>
+  <link name="l_ft">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_ft.stl"/></geometry></visual>
+  </link>
+  <link name="l_heel">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_heel.stl"/></geometry></visual>
+  </link>
+  <link name="l_to">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_to.stl"/></geometry></visual>
+  </link>
+  <link name="l_tp">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/l_tp.stl"/></geometry></visual>
+  </link>
+  <link name="r_hy">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_hy.stl"/></geometry></visual>
+  </link>
+  <link name="r_hr">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_hr.stl"/></geometry></visual>
+  </link>
+  <link name="r_hp">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_hp.stl"/></geometry></visual>
+  </link>
+  <link name="r_kn">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_kn.stl"/></geometry></visual>
+  </link>
+  <link name="r_ak">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_ak.stl"/></geometry></visual>
+  </link>
+  <link name="r_ft">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_ft.stl"/></geometry></visual>
+  </link>
+  <link name="r_heel">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_heel.stl"/></geometry></visual>
+  </link>
+  <link name="r_to">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_to.stl"/></geometry></visual>
+  </link>
+  <link name="r_tp">
+    <visual><geometry><mesh filename="package://hyperleg/meshes/r_tp.stl"/></geometry></visual>
+  </link>
+  <joint name="L_HY" type="revolute">
+    <parent link="torso"/>
+    <child link="l_hy"/>
+    <origin xyz="0.000000 0.090000 -0.025000" rpy="-0.000000 0.000000 -1.572195"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_HY" type="revolute">
+    <parent link="torso"/>
+    <child link="r_hy"/>
+    <origin xyz="-0.000000 -0.090000 -0.025000" rpy="-3.141585 -0.000000 -0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_HR" type="revolute">
+    <parent link="l_hy"/>
+    <child link="l_hr"/>
+    <origin xyz="0.000260 -0.064999 -0.130000" rpy="1.570800 -0.000209 -3.137600"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_HP" type="revolute">
+    <parent link="l_hr"/>
+    <child link="l_hp"/>
+    <origin xyz="-0.000100 -0.000000 0.090000" rpy="1.570777 1.396265 -1.570823"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_KN" type="revolute">
+    <parent link="l_hp"/>
+    <child link="l_kn"/>
+    <origin xyz="-0.000000 0.350000 0.000000" rpy="0.000000 0.000000 -0.349069"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_AK" type="revolute">
+    <parent link="l_kn"/>
+    <child link="l_ak"/>
+    <origin xyz="-0.000000 0.360000 0.000000" rpy="3.141586 0.000001 0.165805"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_FT" type="revolute">
+    <parent link="l_ak"/>
+    <child link="l_ft"/>
+    <origin xyz="-0.028579 0.016500 0.000000" rpy="-1.570800 0.000058 1.047200"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_HEEL" type="fixed">
+    <parent link="l_ft"/>
+    <child link="l_heel"/>
+    <origin xyz="-0.031620 -0.000000 -0.111230" rpy="0.000000 -1.047200 -3.141585"/>
+  </joint>
+  <joint name="L_TO" type="revolute">
+    <parent link="l_ft"/>
+    <child link="l_to"/>
+    <origin xyz="-0.083481 0.000000 0.048593" rpy="1.570800 1.047200 -0.000000"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="L_TP" type="fixed">
+    <parent link="l_to"/>
+    <child link="l_tp"/>
+    <origin xyz="-0.028000 -0.043000 -0.000000" rpy="1.570800 -0.000000 -3.141585"/>
+  </joint>
+  <joint name="R_HR" type="revolute">
+    <parent link="r_hy"/>
+    <child link="r_hr"/>
+    <origin xyz="-0.065000 -0.000100 0.130000" rpy="0.000000 1.570793 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_HP" type="revolute">
+    <parent link="r_hr"/>
+    <child link="r_hp"/>
+    <origin xyz="0.000000 0.000000 0.090000" rpy="-1.570800 0.174531 -0.000001"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_KN" type="revolute">
+    <parent link="r_hp"/>
+    <child link="r_kn"/>
+    <origin xyz="-0.350000 -0.000000 -0.000000" rpy="-3.141586 0.000002 1.221732"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_AK" type="revolute">
+    <parent link="r_kn"/>
+    <child link="r_ak"/>
+    <origin xyz="0.000000 -0.360000 0.000000" rpy="0.000000 -0.000000 -0.165805"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_FT" type="revolute">
+    <parent link="r_ak"/>
+    <child link="r_ft"/>
+    <origin xyz="-0.028579 0.016500 0.000000" rpy="-1.570800 -0.000000 1.047200"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_HEEL" type="fixed">
+    <parent link="r_ft"/>
+    <child link="r_heel"/>
+    <origin xyz="-0.031620 0.000000 -0.111230" rpy="0.000000 -1.047200 -3.141585"/>
+  </joint>
+  <joint name="R_TO" type="revolute">
+    <parent link="r_ft"/>
+    <child link="r_to"/>
+    <origin xyz="-0.083481 0.000000 0.048593" rpy="1.570800 1.047200 -0.000000"/>
+    <axis xyz="0.000000 0.000000 -1.000000"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="100"/>
+  </joint>
+  <joint name="R_TP" type="fixed">
+    <parent link="r_to"/>
+    <child link="r_tp"/>
+    <origin xyz="-0.028000 -0.043000 0.000000" rpy="1.570800 0.000000 -3.141585"/>
+  </joint>
+</robot>
