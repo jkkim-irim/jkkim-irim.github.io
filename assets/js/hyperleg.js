@@ -206,13 +206,24 @@ async function initWalker(canvas) {
         raycaster.setFromCamera({ x: pointer.x, y: pointer.y }, camera);
         return raycaster.intersectObject(mover, true).length > 0;
     }
-    window.addEventListener('pointerdown', () => {
+    function setNoSelect(on) {                 // stop the page text from being drag-selected while grabbing
+        document.body.style.userSelect = on ? 'none' : '';
+        document.body.style.webkitUserSelect = on ? 'none' : '';
+    }
+    window.addEventListener('pointerdown', (e) => {
         if (!fitted || state !== 'walk') return;
-        if (hitsRobot()) { state = 'held'; theta = 0; omega = 0; cursorWorld(_cw); prevCurX = _cw.x; }
-    });
+        if (hitsRobot()) {
+            state = 'held'; theta = 0; omega = 0; cursorWorld(_cw); prevCurX = _cw.x;
+            setNoSelect(true);
+            const sel = window.getSelection && window.getSelection(); if (sel) sel.removeAllRanges();
+            e.preventDefault();
+        }
+    }, { passive: false });
+    document.addEventListener('selectstart', (e) => { if (state === 'held') e.preventDefault(); });
     function release() {
         if (state !== 'held') return;
         state = 'fall'; fallVY = 0;      // start dropping from the current dangling height
+        setNoSelect(false);
     }
     window.addEventListener('pointerup', release);
     window.addEventListener('pointercancel', release);
