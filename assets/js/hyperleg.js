@@ -12,7 +12,7 @@ const ASSET_BASE = (typeof window !== 'undefined' && window.HYPERLEG_ASSETS) || 
 const URDF_PATH = `${ASSET_BASE}HyperLeg.urdf`;
 
 const CONFIG = {
-    scaleFrac: 0.32,     // robot height as fraction of viewport height
+    scaleFrac: 0.192,    // robot height as fraction of viewport height (≈60% of the original 0.32)
     footMargin: 0.02,    // fraction of viewport height the feet sit above the very bottom
     ease: 0.06,          // horizontal follow smoothing
     kSpeed: 2.2,         // world units/sec of walk speed per world unit of distance
@@ -38,6 +38,21 @@ if (canvas && !reduceMotion && !isMobile) {
 }
 
 function lerp(a, b, t) { return a + (b - a) * t; }
+
+// Per-link colours (mesh files are named by link, e.g. "l_hp.drc").
+const BLACK = 0x1c1c20, DARKGRAY = 0x3a3a40, RED = 0xd23a2e, DEFAULT = 0xccd0d6;
+const LINK_COLOR = {
+    hp: BLACK,      // thigh (upper leg)
+    hr: DARKGRAY,   // hip-roll link
+    ft: BLACK,      // foot link
+    to: DARKGRAY,   // toe link
+    heel: RED,      // heel
+    tp: RED,        // toe tip
+};
+function colorFor(fname) {
+    const base = fname.toLowerCase().replace(/\.(drc|stl)$/, '').replace(/^[lr]_/, '');
+    return LINK_COLOR[base] ?? DEFAULT; // torso / hy / kn / ak keep the default light grey
+}
 
 async function initWalker(canvas) {
     const scene = new THREE.Scene();
@@ -68,7 +83,7 @@ async function initWalker(canvas) {
         const url = path.replace(/\.stl$/i, '.drc');
         draco.load(url, (geo) => {
             geo.computeVertexNormals();
-            done(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xccd0d6, roughness: 0.6, metalness: 0.25 })));
+            done(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: colorFor(url.split('/').pop()), roughness: 0.6, metalness: 0.25 })));
         }, undefined, (e) => { console.error('[hyperleg] mesh failed:', url.split('/').pop()); done(null, e); });
     };
     const allLoaded = new Promise(res => { manager.onLoad = res; });
@@ -130,6 +145,12 @@ async function initWalker(canvas) {
         robot.position.sub(center);
         robotH = size.y;
         applyScale();
+        // Recolor per link now that the (async Draco) meshes are attached — overrides
+        // urdf-loader's default material so the requested per-link colours win.
+        for (const ln in robot.links) {
+            const col = colorFor(ln);
+            robot.links[ln].traverse(o => { if (o.isMesh && o.material) o.material.color.setHex(col); });
+        }
         fitted = true;
         window.__allexReady = true; // verification hook (shared with harness driver)
         console.log('[hyperleg] fitted. robotH=' + robotH.toFixed(3) + ' scale=' + fit.scale.x.toFixed(3));
