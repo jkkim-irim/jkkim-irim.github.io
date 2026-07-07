@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import URDFLoader from 'urdf-loader';
-import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 /* ----------------------------------------------------------------------------
  * ALLEX right hand that follows the cursor.
@@ -15,7 +15,7 @@ const ASSET_BASE = (typeof window !== 'undefined' && window.ALLEX_ASSETS) || '/a
 const URDF_PATH = `${ASSET_BASE}ALLEX_Right_Hand.urdf`;
 
 const CONFIG = {
-    handScale: 3.2,          // model is in meters (~0.2 m hand); scale up for screen presence
+    handScale: 2.56,         // model is in meters (~0.2 m hand); scale up for screen presence
     ease: 0.16,              // cursor-follow smoothing
     // Base orientation of the hand group (radians) — tuned so it faces the
     // viewer with the index finger reading as a pointer. Verified via render.
@@ -71,13 +71,18 @@ async function initHand(canvas) {
     const loader = new URDFLoader(manager);
     loader.packages = { allex_description: ASSET_BASE.replace(/\/$/, '') };
     loader.parseCollision = false;
-    const stl = new STLLoader(manager);
+    // Meshes are shipped as Draco-compressed .drc (≈40× smaller than STL). The
+    // URDF still references .stl, so rewrite the path in the load callback.
+    const draco = new DRACOLoader(manager);
+    draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+    draco.setDecoderConfig({ type: 'wasm' });
     loader.loadMeshCb = (path, mgr, done) => {
-        stl.load(path, (geo) => {
+        const url = path.replace(/\.stl$/i, '.drc');
+        draco.load(url, (geo) => {
             geo.computeVertexNormals();
-            const mat = new THREE.MeshStandardMaterial({ color: colorFor(path.split('/').pop()), roughness: 0.6, metalness: 0.15 });
+            const mat = new THREE.MeshStandardMaterial({ color: colorFor(url.split('/').pop()), roughness: 0.6, metalness: 0.15 });
             done(new THREE.Mesh(geo, mat));
-        }, undefined, (e) => { console.error('[allex] mesh failed:', path.split('/').pop()); done(null, e); });
+        }, undefined, (e) => { console.error('[allex] mesh failed:', url.split('/').pop()); done(null, e); });
     };
     const allLoaded = new Promise(res => { manager.onLoad = res; });
 

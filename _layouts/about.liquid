@@ -14,9 +14,15 @@ layout: default
   /assets/models/allex/. The importmap must precede the first ES module script
   on the page (al-folio's ninja-keys search loads later in <body>), so this block
   sits at the top of the content. allex.js is deferred (type=module) and disables
-  itself on mobile / prefers-reduced-motion. The index fingertip tracks the cursor;
-  clicking flicks the index. Model: ALLEX by WIRobotics (right-hand subtree).
+  itself on mobile / prefers-reduced-motion. The index fingertip tracks the cursor
+  and curls while the mouse is held. Meshes are Draco-compressed .drc (~180 KB total).
+  Model: ALLEX by WIRobotics (right-hand subtree).
 {% endcomment %}
+{% comment %} Warm up the CDNs (three, urdf-loader, Draco decoder) and prefetch the module + URDF. {% endcomment %}
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://esm.sh" crossorigin>
+<link rel="modulepreload" href="{{ '/assets/js/allex.js' | relative_url }}">
+<link rel="preload" href="{{ '/assets/models/allex/ALLEX_Right_Hand.urdf' | relative_url }}" as="fetch" crossorigin>
 <canvas id="robot-canvas"></canvas>
 <script>
   // Baseurl-safe asset path, and reparent the canvas to <body> so it lives in
