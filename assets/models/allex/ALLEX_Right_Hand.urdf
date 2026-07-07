@@ -1,0 +1,803 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="ALLEX_Right_Hand">
+  <material name="black">
+    <color rgba="0.12 0.12 0.12 1" />
+  </material>
+  <material name="gray">
+    <color rgba="0.4 0.4 0.4 1" />
+  </material>
+  <material name="led">
+    <color rgba="0.5 0.5 0.5 1" />
+  </material>
+  <material name="pad">
+    <color rgba="0.7 0.7 0.7 1" />
+  </material>
+  <material name="white">
+    <color rgba="0.98 0.98 0.98 1" />
+  </material>
+  <link name="R_Thumb_Proximal_Link">
+    <inertial>
+      <origin xyz="-5.9101e-05 -0.015021659 0.007733297" rpy="1.29792405 -0.00399944438 0.00259407196" />
+      <mass value="0.027231496" />
+      <inertia ixx="8.18647506e-06" iyy="7.02673901e-06" izz="1.95160136e-06" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="white" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_White.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_Collision1.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_Collision2.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_Collision3.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Proximal_Collision4.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Index_Proximal_Link">
+    <inertial>
+      <origin xyz="-0.005831596 4.2198e-05 -0.01921192" rpy="-0.179018007 0.00504849843 1.59163888" />
+      <mass value="0.02387" />
+      <inertia ixx="6.64295065e-06" iyy="6.51700556e-06" izz="8.85266462e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="white" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_White.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Little_Roll_Link">
+    <inertial>
+      <origin xyz="-0.001315071 0.000324987 -0.001749841" rpy="-1.83820676 -1.15147144 -3.04825548" />
+      <mass value="0.00611" />
+      <inertia ixx="1.97980083e-07" iyy="1.35717767e-07" izz="1.02445316e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Thumb_Fingertip">
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Distal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="R_Middle_Distal_Link">
+    <inertial>
+      <origin xyz="-0.002635323 -3.528e-06 -0.00600072" rpy="-0.000862804857 0.0115442066 0.00375023956" />
+      <mass value="0.00504" />
+      <inertia ixx="3.48836915e-07" iyy="3.28166576e-07" izz="1.03707591e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Middle_Fingertip">
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="R_Thumb_Middle_Link">
+    <inertial>
+      <origin xyz="4.85e-07 -0.006779487 -0.00176946" rpy="-0.00410535232 -1.50554574 1.57490171" />
+      <mass value="0.009930981" />
+      <inertia ixx="8.84655879e-07" iyy="8.10963655e-07" izz="3.27075167e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Middle_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Middle_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Middle_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Thumb_Distal_Link">
+    <inertial>
+      <origin xyz="3.439e-06 -0.005724653 0.00265343" rpy="0.475148071 -1.56290184 1.09650873" />
+      <mass value="0.00504" />
+      <inertia ixx="3.65366677e-07" iyy="3.44024168e-07" izz="1.05072416e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Distal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Distal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Middle_Middle_Link">
+    <inertial>
+      <origin xyz="-0.00171781 1.917e-06 -0.00601352" rpy="0.000304271917 0.123271993 -0.00123069697" />
+      <mass value="0.00977" />
+      <inertia ixx="7.39580106e-07" iyy="6.70752565e-07" izz="3.19274971e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Ring_Distal_Link">
+    <inertial>
+      <origin xyz="-0.002635323 -3.528e-06 -0.00600072" rpy="-0.000862804857 0.0115442066 0.00375023956" />
+      <mass value="0.00504" />
+      <inertia ixx="3.48836915e-07" iyy="3.28166576e-07" izz="1.03707591e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Little_Middle_Link">
+    <inertial>
+      <origin xyz="-0.00171781 1.917e-06 -0.00601352" rpy="0.000304271917 0.123271993 -0.00123069697" />
+      <mass value="0.00977" />
+      <inertia ixx="7.39580106e-07" iyy="6.70752565e-07" izz="3.19274971e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Index_Distal_Link">
+    <inertial>
+      <origin xyz="-0.002635323 -3.528e-06 -0.00600072" rpy="-0.000862804857 0.0115442066 0.00375023956" />
+      <mass value="0.00504" />
+      <inertia ixx="3.48836915e-07" iyy="3.28166576e-07" izz="1.03707591e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Ring_Proximal_Link">
+    <inertial>
+      <origin xyz="-0.005831596 4.2198e-05 -0.01921192" rpy="-0.179018007 0.00504849843 1.59163888" />
+      <mass value="0.02387" />
+      <inertia ixx="6.64295065e-06" iyy="6.51700556e-06" izz="8.85266462e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="white" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_White.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Palm_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="white" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_White.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Back_Collision1.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Back_Collision2.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Back_Collision3.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision1.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision2.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision3.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision4.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision5.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision6.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Frame_Collision7.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Pad_Collision1.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Pad_Collision2.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Palm_Pad_Collision3.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Ring_Roll_Link">
+    <inertial>
+      <origin xyz="-0.001315071 0.000324987 -0.001749841" rpy="-1.83820676 -1.15147144 -3.04825548" />
+      <mass value="0.00611" />
+      <inertia ixx="1.97980083e-07" iyy="1.35717767e-07" izz="1.02445316e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Middle_Proximal_Link">
+    <inertial>
+      <origin xyz="-0.005831596 4.2198e-05 -0.01921192" rpy="-0.179018007 0.00504849843 1.59163888" />
+      <mass value="0.02387" />
+      <inertia ixx="6.64295065e-06" iyy="6.51700556e-06" izz="8.85266462e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="white" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_White.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Index_Fingertip">
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="R_Little_Proximal_Link">
+    <inertial>
+      <origin xyz="-0.005831596 4.2198e-05 -0.01921192" rpy="-0.179018007 0.00504849843 1.59163888" />
+      <mass value="0.02175" />
+      <inertia ixx="6.0529609e-06" iyy="5.93820155e-06" izz="8.06642042e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="white" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_White.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Proximal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Index_Middle_Link">
+    <inertial>
+      <origin xyz="-0.00171781 1.917e-06 -0.00601352" rpy="0.000304271917 0.123271993 -0.00123069697" />
+      <mass value="0.00977" />
+      <inertia ixx="7.39580106e-07" iyy="6.70752565e-07" izz="3.19274971e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Ring_Middle_Link">
+    <inertial>
+      <origin xyz="-0.00171781 1.917e-06 -0.00601352" rpy="0.000304271917 0.123271993 -0.00123069697" />
+      <mass value="0.00977" />
+      <inertia ixx="7.39580106e-07" iyy="6.70752565e-07" izz="3.19274971e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Middle_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Thumb_Yaw_Link">
+    <inertial>
+      <origin xyz="-7.001e-06 -0.002747764 -0.019328997" rpy="-0.0133832376 0.302264329 1.54015668" />
+      <mass value="0.032789432" />
+      <inertia ixx="1.04786294e-05" iyy="1.04406183e-05" izz="1.50097565e-06" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Yaw_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/R_Thumb_Yaw_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Ring_Fingertip">
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="R_Little_Distal_Link">
+    <inertial>
+      <origin xyz="-0.002635323 -3.528e-06 -0.00600072" rpy="-0.000862804857 0.0115442066 0.00375023956" />
+      <mass value="0.00504" />
+      <inertia ixx="3.48836915e-07" iyy="3.28166576e-07" izz="1.03707591e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Little_Fingertip">
+    <visual>
+      <material name="pad" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Distal_Pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="R_Middle_Roll_Link">
+    <inertial>
+      <origin xyz="-0.001315071 0.000324987 -0.001749841" rpy="-1.83820676 -1.15147144 -3.04825548" />
+      <mass value="0.00611" />
+      <inertia ixx="1.97980083e-07" iyy="1.35717767e-07" izz="1.02445316e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="R_Index_Roll_Link">
+    <inertial>
+      <origin xyz="-0.001315071 0.000324987 -0.001749841" rpy="-1.83820676 -1.15147144 -3.04825548" />
+      <mass value="0.00611" />
+      <inertia ixx="1.97980083e-07" iyy="1.35717767e-07" izz="1.02445316e-07" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual>
+      <material name="gray" />
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Gray.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://allex_description/meshes/Finger_Roll_Collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="R_Thumb_Yaw_Joint" type="revolute">
+    <parent link="R_Palm_Link" />
+    <child link="R_Thumb_Yaw_Link" />
+    <origin xyz="0.0098263 -0.0210097 0.0360889" rpy="-0.0857013198 0.12731092 0.126608008" />
+    <axis xyz="0 0 -1" />
+    <dynamics damping="0" friction="0.03874" />
+    <limit lower="-2.617994" upper="0" effort="1.5" velocity="5" />
+  </joint>
+  <joint name="R_Index_ABAD_Joint" type="revolute">
+    <parent link="R_Palm_Link" />
+    <child link="R_Index_Roll_Link" />
+    <origin xyz="-0.0186259 -0.0330567 -0.0383928" rpy="-0.111559433 -0.342338035 0.087060514" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0.0137996" />
+    <limit lower="-0.523599" upper="0.523599" effort="3.5" velocity="8" />
+  </joint>
+  <joint name="R_Middle_ABAD_Joint" type="revolute">
+    <parent link="R_Palm_Link" />
+    <child link="R_Middle_Roll_Link" />
+    <origin xyz="-0.0197378 -0.0111686 -0.0403088" rpy="0 -0.349065878 0" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0.0137996" />
+    <limit lower="-0.523599" upper="0.523599" effort="3.5" velocity="8" />
+  </joint>
+  <joint name="R_Ring_ABAD_Joint" type="revolute">
+    <parent link="R_Palm_Link" />
+    <child link="R_Ring_Roll_Link" />
+    <origin xyz="-0.0197763 0.0108314 -0.040309" rpy="0.111559433 -0.342338035 -0.087060514" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0.0137996" />
+    <limit lower="-0.523599" upper="0.523599" effort="3.5" velocity="8" />
+  </joint>
+  <joint name="R_Little_ABAD_Joint" type="revolute">
+    <parent link="R_Palm_Link" />
+    <child link="R_Little_Roll_Link" />
+    <origin xyz="-0.0185852 0.0327196 -0.0383938" rpy="0.220991363 -0.322382983 -0.171647217" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0.0137996" />
+    <limit lower="-0.523599" upper="0.523599" effort="3.5" velocity="8" />
+  </joint>
+  <joint name="R_Little_MCP_Joint" type="revolute">
+    <parent link="R_Little_Roll_Link" />
+    <child link="R_Little_Proximal_Link" />
+    <origin xyz="-0.003817 0 -0.0061246" rpy="0 0.349065878 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0456392" />
+    <limit lower="-0.174532" upper="1.570796" effort="5" velocity="8" />
+  </joint>
+  <joint name="R_Little_PIP_Joint" type="revolute">
+    <parent link="R_Little_Proximal_Link" />
+    <child link="R_Little_Middle_Link" />
+    <origin xyz="0 0 -0.052" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0210383" />
+    <limit lower="0" upper="1.9198622" effort="3" velocity="10" />
+  </joint>
+  <joint name="R_Little_DIP_Joint" type="revolute">
+    <parent link="R_Little_Middle_Link" />
+    <child link="R_Little_Distal_Link" />
+    <origin xyz="0.0019932 0 -0.0188952" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0" />
+    <limit lower="0" upper="1.25999882" effort="0" velocity="10" />
+    <mimic joint="R_Little_PIP_Joint" multiplier="0.656296489" offset="0" />
+  </joint>
+  <joint name="R_Little_Fingertip_fixed_joint" type="fixed">
+    <parent link="R_Little_Distal_Link" />
+    <child link="R_Little_Fingertip" />
+    <origin xyz="0.0075 0 -0.011" rpy="0 0 0" />
+  </joint>
+  <joint name="R_Ring_MCP_Joint" type="revolute">
+    <parent link="R_Ring_Roll_Link" />
+    <child link="R_Ring_Proximal_Link" />
+    <origin xyz="-0.003817 0 -0.0061246" rpy="0 0.349065878 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0456392" />
+    <limit lower="-0.174532" upper="1.570796" effort="5" velocity="8" />
+  </joint>
+  <joint name="R_Ring_PIP_Joint" type="revolute">
+    <parent link="R_Ring_Proximal_Link" />
+    <child link="R_Ring_Middle_Link" />
+    <origin xyz="0 0 -0.052" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0210383" />
+    <limit lower="0" upper="1.9198622" effort="3" velocity="10" />
+  </joint>
+  <joint name="R_Ring_DIP_Joint" type="revolute">
+    <parent link="R_Ring_Middle_Link" />
+    <child link="R_Ring_Distal_Link" />
+    <origin xyz="0.0019932 0 -0.0188952" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0" />
+    <limit lower="0" upper="1.25999882" effort="0" velocity="10" />
+    <mimic joint="R_Ring_PIP_Joint" multiplier="0.656296489" offset="0" />
+  </joint>
+  <joint name="R_Ring_Fingertip_fixed_joint" type="fixed">
+    <parent link="R_Ring_Distal_Link" />
+    <child link="R_Ring_Fingertip" />
+    <origin xyz="0.0075 0 -0.011" rpy="0 0 0" />
+  </joint>
+  <joint name="R_Middle_MCP_Joint" type="revolute">
+    <parent link="R_Middle_Roll_Link" />
+    <child link="R_Middle_Proximal_Link" />
+    <origin xyz="-0.003817 0 -0.0061246" rpy="0 0.349065878 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0456392" />
+    <limit lower="-0.174532" upper="1.570796" effort="5" velocity="8" />
+  </joint>
+  <joint name="R_Middle_PIP_Joint" type="revolute">
+    <parent link="R_Middle_Proximal_Link" />
+    <child link="R_Middle_Middle_Link" />
+    <origin xyz="0 0 -0.052" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0210383" />
+    <limit lower="0" upper="1.9198622" effort="3" velocity="10" />
+  </joint>
+  <joint name="R_Middle_DIP_Joint" type="revolute">
+    <parent link="R_Middle_Middle_Link" />
+    <child link="R_Middle_Distal_Link" />
+    <origin xyz="0.0019932 0 -0.0188952" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0" />
+    <limit lower="0" upper="1.25999882" effort="0" velocity="10" />
+    <mimic joint="R_Middle_PIP_Joint" multiplier="0.656296489" offset="0" />
+  </joint>
+  <joint name="R_Middle_Fingertip_fixed_joint" type="fixed">
+    <parent link="R_Middle_Distal_Link" />
+    <child link="R_Middle_Fingertip" />
+    <origin xyz="0.0075 0 -0.011" rpy="0 0 0" />
+  </joint>
+  <joint name="R_Index_MCP_Joint" type="revolute">
+    <parent link="R_Index_Roll_Link" />
+    <child link="R_Index_Proximal_Link" />
+    <origin xyz="-0.003817 0 -0.0061246" rpy="0 0.349065878 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0456392" />
+    <limit lower="-0.174532" upper="1.570796" effort="5" velocity="8" />
+  </joint>
+  <joint name="R_Index_PIP_Joint" type="revolute">
+    <parent link="R_Index_Proximal_Link" />
+    <child link="R_Index_Middle_Link" />
+    <origin xyz="0 0 -0.052" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0.0210383" />
+    <limit lower="0" upper="1.9198622" effort="3" velocity="10" />
+  </joint>
+  <joint name="R_Index_DIP_Joint" type="revolute">
+    <parent link="R_Index_Middle_Link" />
+    <child link="R_Index_Distal_Link" />
+    <origin xyz="0.0019932 0 -0.0188952" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <dynamics damping="0" friction="0" />
+    <limit lower="0" upper="1.25999882" effort="0" velocity="10" />
+    <mimic joint="R_Index_PIP_Joint" multiplier="0.656296489" offset="0" />
+  </joint>
+  <joint name="R_Index_Fingertip_fixed_joint" type="fixed">
+    <parent link="R_Index_Distal_Link" />
+    <child link="R_Index_Fingertip" />
+    <origin xyz="0.0075 0 -0.011" rpy="0 0 0" />
+  </joint>
+  <joint name="R_Thumb_CMC_Joint" type="revolute">
+    <parent link="R_Thumb_Yaw_Link" />
+    <child link="R_Thumb_Proximal_Link" />
+    <origin xyz="0 -0.0139985 -0.0323434" rpy="0.268480431 0 0" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0.05879" />
+    <limit lower="0" upper="1.570796" effort="4.5" velocity="8" />
+  </joint>
+  <joint name="R_Thumb_MCP_Joint" type="revolute">
+    <parent link="R_Thumb_Proximal_Link" />
+    <child link="R_Thumb_Middle_Link" />
+    <origin xyz="0 -0.0501371 0.0137939" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0.0185" />
+    <limit lower="0" upper="1.570796" effort="3" velocity="8" />
+  </joint>
+  <joint name="R_Thumb_IP_Joint" type="revolute">
+    <parent link="R_Thumb_Middle_Link" />
+    <child link="R_Thumb_Distal_Link" />
+    <origin xyz="0 -0.022 0" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+    <dynamics damping="0" friction="0" />
+    <limit lower="0" upper="1.14964202" effort="0" velocity="8" />
+    <mimic joint="R_Thumb_MCP_Joint" multiplier="0.731884995" offset="0" />
+  </joint>
+  <joint name="R_Thumb_Fingertip_fixed_joint" type="fixed">
+    <parent link="R_Thumb_Distal_Link" />
+    <child link="R_Thumb_Fingertip" />
+    <origin xyz="0 -0.011 -0.006" rpy="0 0 0" />
+  </joint>
+</robot>
