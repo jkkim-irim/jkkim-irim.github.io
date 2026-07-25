@@ -166,6 +166,34 @@ layout: default
         {% endfor %}
       </div>
     </div>
+
+    <script>
+      // al_folio_core's projects_horizontal.liquid renders
+      //   <a href="{% raw %}{% if project.redirect %}...{% endif %}{% endraw %}">
+      // with no target, so a `redirect:` card would navigate away from this site.
+      // Upgrade those links here rather than vendoring the theme include, which
+      // would freeze it against gem updates.
+      //
+      // A hostname check is NOT sufficient: standalone apps are hosted on this
+      // same github.io host, just under a different path. That is also why the
+      // jekyll-link-attributes plugin (enabled in _config.yml with
+      // target: _blank) leaves them alone -- it only treats a different host as
+      // external. So match by path prefix.
+      (function () {
+        var APP_PATHS = ["/allex-playground"];
+        document.querySelectorAll(".projects a[href]").forEach(function (a) {
+          var url = new URL(a.href, location.href);
+          var offSite = url.hostname !== location.hostname;
+          var isApp = APP_PATHS.some(function (p) {
+            return url.pathname.indexOf(p) === 0;
+          });
+          if (offSite || isApp) {
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+          }
+        });
+      })();
+    </script>
   </article>
 </div>
 
