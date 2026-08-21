@@ -1,1 +1,1 @@
-{"config": {"run": "runs/live", "days": 100, "model": "Qwen/Qwen3.5-2B", "npc": "미나", "steps": 100, "stream": "https://liz-mic-undefined-maternity.trycloudflare.com/state", "tech": {"rehearsal": true, "accumulate": true}}, "days": [], "done": false}
+{"config": {"run": "runs/live", "days": 100, "model": "Qwen/Qwen3.5-2B", "npc": "미나", "steps": 100, "stream": "https://parks-translations-communications-league.trycloudflare.com/state", "tech": {"rehearsal": true, "accumulate": true}}, "days": [], "done": false}
