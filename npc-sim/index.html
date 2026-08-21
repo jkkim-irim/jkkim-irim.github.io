@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>미나의 어항</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -9,6 +10,10 @@
   --ink:#111719; --ink-2:#414D4A; --ink-3:#6D7975;
   --accent:#1F6E7B; --accent-ink:#0E3C44; --accent-soft:#CFE1E2; --on-accent:#FFFFFF;
   --ok:#4F7A31; --warn:#B08415; --crit:#AC3F27;
+  /* chart series, fixed order identity/fact/general.
+     dataviz reference slots 1-3, re-validated against this page's surfaces.
+     Deliberately not the status hues above -- those mean "this need is critical". */
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
   --t-water:#3D6E88; --t-rock:#67736E; --t-void:#E8EDE6;
   --t-hill:#7F9159; --t-hut:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72; --t-forge:#AA5C34;
   --shadow:0 1px 0 rgba(17,23,25,.06), 0 8px 24px -18px rgba(17,23,25,.5);
@@ -19,6 +24,7 @@
     --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
     --accent:#4FA3AE; --accent-ink:#BFE0E3; --accent-soft:#1B3A3F; --on-accent:#080E0F;
     --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
     --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
     --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
     --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 28px -20px #000;
@@ -29,6 +35,7 @@
   --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
   --accent:#4FA3AE; --accent-ink:#BFE0E3; --accent-soft:#1B3A3F; --on-accent:#080E0F;
   --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
   --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
   --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 28px -20px #000;
@@ -173,6 +180,49 @@ button{font:inherit; color:inherit; cursor:pointer}
 .now span{font-size:12.5px; color:var(--ink-3)}
 #spark{display:block; width:100%; height:44px; margin-top:4px}
 
+/* ── live night-training panel ───────────────────── */
+.live{margin-top:18px}
+.livebar{display:flex; flex-wrap:wrap; align-items:center; gap:9px 12px; margin-bottom:13px}
+.badge{
+  display:inline-flex; align-items:center; gap:7px; flex:none;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
+  letter-spacing:.08em; padding:5px 11px; border-radius:2px;
+  border:1px solid var(--line); color:var(--ink-3);
+}
+.badge::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor}
+.badge[data-state="live"]{color:var(--ok); border-color:currentColor}
+.badge[data-state="live"]::before{animation:pulse 1.6s ease-in-out infinite}
+.badge[data-state="done"]{color:var(--accent); border-color:currentColor}
+.badge[data-state="lost"]{color:var(--crit); border-color:currentColor}
+@keyframes pulse{50%{opacity:.28}}
+@media (prefers-reduced-motion: reduce){.badge[data-state="live"]::before{animation:none}}
+.url{
+  flex:1 1 300px; min-width:0; font:400 12.5px/1.2 "IBM Plex Mono",ui-monospace,monospace;
+  padding:7px 10px; color:var(--ink); background:var(--paper);
+  border:1px solid var(--line); border-radius:2px;
+}
+.runinfo{font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.legend.series i{width:15px; height:3px; border-radius:2px}
+#nll{display:block; width:100%; height:auto; margin-top:4px; cursor:crosshair}
+.tablewrap{max-height:170px; overflow:auto; margin-top:14px;
+  border:1px solid var(--line); border-radius:2px}
+.tablewrap table{border-collapse:collapse; width:100%;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
+  font-variant-numeric:tabular-nums}
+.tablewrap th{
+  position:sticky; top:0; background:var(--sunk); color:var(--ink-3);
+  font-weight:500; letter-spacing:.06em; font-size:10.5px;
+  text-align:right; padding:7px 11px; border-bottom:1px solid var(--line);
+}
+.tablewrap th:first-child{text-align:left}
+.tablewrap td{padding:5px 11px; text-align:right; color:var(--ink-2);
+  border-bottom:1px solid var(--line)}
+.tablewrap td:first-child{text-align:left; color:var(--ink)}
+.tablewrap tr:last-child td{border-bottom:0}
+.empty{margin:0; padding:20px 14px; text-align:center; color:var(--ink-3); font-size:13px}
+.empty code{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
+  background:var(--sunk); padding:1px 5px; border-radius:2px}
+
 /* ── footer ───────────────────────────────────────────── */
 .note{
   margin-top:26px; padding-top:18px; border-top:1px solid var(--line);
@@ -248,6 +298,25 @@ button{font:inherit; color:inherit; cursor:pointer}
       </div>
     </div>
   </div>
+
+  <section class="card live">
+    <h2>밤 학습 — 느린 층 <em id="live-sub">연구 PC 에서만 돈다</em></h2>
+    <div class="livebar">
+      <span class="badge" id="badge" data-state="off">연결 안 됨</span>
+      <input class="url" id="stream-url" type="url" spellcheck="false"
+             aria-label="라이브 스트림 주소"
+             placeholder="https://….trycloudflare.com/stream">
+      <button class="btn" id="connect">연결</button>
+      <span class="runinfo" id="runinfo"></span>
+    </div>
+    <div class="legend series" id="series-legend"></div>
+    <canvas id="nll" width="1120" height="300" role="img"
+            aria-label="일별 프로브 NLL 세 곡선 — 정체성, 사실, 일반능력"></canvas>
+    <div class="tablewrap" id="nll-table-wrap">
+      <p class="empty">받은 데이터가 없다. 연구 PC 에서 <code>python s0.py</code> 를 돌리고
+        터널 주소를 위에 붙이면 밤마다 한 줄씩 쌓인다.</p>
+    </div>
+  </section>
 
   <div class="note">
     <p><b>이 페이지는 브라우저 안에서 시뮬레이션을 돌린다.</b> 연구 PC 의 파이썬 프로세스에
@@ -640,6 +709,190 @@ function frame(ts){
   paint(playing ? acc : 1);
   requestAnimationFrame(frame);
 }
+
+/* ── live night-training feed ─────────────────────────────
+   The slow layer (QLoRA on a 5090) cannot run in a browser, so the research
+   machine streams its metrics over SSE and this panel only draws them. The page
+   works with nothing connected -- the badge says so instead of looking broken.
+   On a strict-CSP host (an Artifact preview) EventSource to another origin is
+   blocked outright and the badge stays on 끊김; that is the CSP, not the stream. */
+const SERIES = [
+  {key:"identity", name:"정체성",  tok:"--s1"},
+  {key:"fact",     name:"사실",    tok:"--s2"},
+  {key:"general",  name:"일반능력", tok:"--s3"},
+];
+TOKENS.push("--s1", "--s2", "--s3", "--ink", "--ink-2", "--ink-3", "--surface");
+
+const LIVE = {src:null, cfg:null, rows:[], state:"off", hover:null};
+
+$("series-legend").innerHTML = SERIES
+  .map(x => `<span><i style="background:var(${x.tok})"></i>${x.name} NLL</span>`).join("");
+
+function setBadge(state, text){
+  LIVE.state = state;
+  $("badge").dataset.state = state;
+  $("badge").textContent = text;
+}
+
+function onEvent(ev){
+  if (ev.kind === "config"){
+    LIVE.cfg = ev; LIVE.rows = [];
+    const tech = Object.entries(ev.tech || {}).map(([k,v]) => `${k}=${v ? 1 : 0}`).join(" ");
+    $("runinfo").textContent = `${ev.run} · ${ev.model} · ${ev.steps}스텝/밤 · ${tech}`;
+    setBadge("live", "수신 중");
+  } else if (ev.kind === "day"){
+    LIVE.rows = LIVE.rows.filter(r => r.day !== ev.day).concat(ev).sort((a,b) => a.day - b.day);
+    setBadge("live", `${ev.day}일 / ${LIVE.cfg ? LIVE.cfg.days : 30}`);
+  } else if (ev.kind === "done"){
+    setBadge("done", `${ev.days}일 완료`);
+  }
+  $("live-sub").textContent = LIVE.rows.length
+    ? `${LIVE.rows.length}개 지점 수신` : "연구 PC 에서만 돈다";
+  drawNll(); renderTable();
+}
+
+function connect(url){
+  if (LIVE.src){ LIVE.src.close(); LIVE.src = null; }
+  if (!url){ setBadge("off", "연결 안 됨"); return; }
+  try { localStorage.setItem("npcsim.stream", url); } catch (e) { /* private window */ }
+  setBadge("off", "연결 중");
+  const src = new EventSource(url);
+  LIVE.src = src;
+  src.onmessage = m => { try { onEvent(JSON.parse(m.data)); } catch (e) { /* keepalive */ } };
+  src.onerror = () => setBadge("lost", "끊김 — 재시도 중");
+  src.onopen = () => { if (LIVE.state !== "live") setBadge("live", "연결됨"); };
+}
+
+$("connect").addEventListener("click", () => connect($("stream-url").value.trim()));
+$("stream-url").addEventListener("keydown", e => {
+  if (e.key === "Enter") connect($("stream-url").value.trim());
+});
+
+const fmt = v => v == null ? "—" : Number(v).toFixed(3);
+
+function renderTable(){
+  if (!LIVE.rows.length) return;
+  $("nll-table-wrap").innerHTML =
+    "<table><thead><tr><th>일</th><th>LOSS</th>" +
+    SERIES.map(x => `<th>${x.name}</th>`).join("") + "</tr></thead><tbody>" +
+    LIVE.rows.slice().reverse().map(r =>
+      `<tr><td>${r.day}</td><td>${fmt(r.loss)}</td>` +
+      SERIES.map(x => `<td>${fmt(r[x.key])}</td>`).join("") + "</tr>").join("") +
+    "</tbody></table>";
+}
+
+const NLL_PAD = {t:14, r:80, b:30, l:46};
+
+function drawNll(){
+  readPalette();
+  const cv = $("nll"), dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = cv.clientWidth || 1120, h = 300;
+  if (cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  const P = NLL_PAD;
+  const days = LIVE.cfg ? LIVE.cfg.days : 30;
+  const vals = LIVE.rows.flatMap(r => SERIES.map(x => r[x.key]).filter(v => v != null));
+  const lo = vals.length ? Math.floor(Math.min(...vals) * 2) / 2 - 0.5 : 2;
+  const hi = vals.length ? Math.ceil(Math.max(...vals) * 2) / 2 + 0.5 : 7;
+  const px = d => P.l + d / days * (w - P.l - P.r);
+  const py = v => P.t + (1 - (v - lo) / (hi - lo)) * (h - P.t - P.b);
+
+  /* recessive grid; every label wears an ink token, never a series colour */
+  g.font = '400 11px "IBM Plex Mono", ui-monospace, monospace';
+  g.strokeStyle = css("--line"); g.lineWidth = 1;
+  g.fillStyle = css("--ink-3"); g.textAlign = "right"; g.textBaseline = "middle";
+  const step = (hi - lo) > 4 ? 1 : 0.5;
+  for (let v = lo; v <= hi + 1e-9; v += step){
+    g.beginPath(); g.moveTo(P.l, py(v)); g.lineTo(w - P.r, py(v)); g.stroke();
+    g.fillText(v.toFixed(1), P.l - 8, py(v));
+  }
+  g.textAlign = "center"; g.textBaseline = "top";
+  for (let d = 0; d <= days; d += days > 15 ? 5 : 2) g.fillText(String(d), px(d), h - P.b + 9);
+  g.textAlign = "left";
+  g.fillText("일", px(days) + 14, h - P.b + 9);
+
+  if (!LIVE.rows.length){
+    g.fillStyle = css("--ink-3"); g.textAlign = "center"; g.textBaseline = "middle";
+    g.font = '400 13px "IBM Plex Sans KR", sans-serif';
+    g.fillText("스트림에 연결되면 여기에 곡선이 그려진다",
+               (P.l + w - P.r) / 2, (P.t + h - P.b) / 2);
+    return;
+  }
+
+  const ends = [];
+  for (const sr of SERIES){
+    const pts = LIVE.rows.filter(r => r[sr.key] != null).map(r => [px(r.day), py(r[sr.key])]);
+    if (!pts.length) continue;
+    g.strokeStyle = css(sr.tok); g.lineWidth = 2; g.lineJoin = "round"; g.lineCap = "round";
+    g.beginPath();
+    pts.forEach(([x,y], i) => i ? g.lineTo(x,y) : g.moveTo(x,y));
+    g.stroke();
+    const [ex, ey] = pts[pts.length - 1];
+    g.fillStyle = css(sr.tok);
+    g.beginPath(); g.arc(ex, ey, 4.5, 0, 7); g.fill();
+    g.strokeStyle = css("--surface"); g.lineWidth = 2;        /* 2px surface ring */
+    g.beginPath(); g.arc(ex, ey, 4.5, 0, 7); g.stroke();
+    ends.push({name:sr.name, y:ey});
+  }
+
+  /* Direct labels are not optional here: on the light surface two of the three
+     series sit under 3:1 contrast, and the palette check pays that back with
+     labels or a table view. This page ships both. */
+  ends.sort((a,b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++)
+    if (ends[i].y - ends[i-1].y < 15) ends[i].y = ends[i-1].y + 15;
+  g.textAlign = "left"; g.textBaseline = "middle";
+  g.font = '500 12px "IBM Plex Sans KR", sans-serif';
+  g.fillStyle = css("--ink-2");
+  for (const e of ends) g.fillText(e.name, w - P.r + 11, e.y);
+
+  const row = LIVE.hover == null ? null : LIVE.rows[LIVE.hover];
+  if (!row) return;
+  const hx = px(row.day);
+  g.strokeStyle = css("--ink-3"); g.lineWidth = 1; g.globalAlpha = .5;
+  g.beginPath(); g.moveTo(hx, P.t); g.lineTo(hx, h - P.b); g.stroke();
+  g.globalAlpha = 1;
+  const lines = [`${row.day}일  loss ${fmt(row.loss)}`].concat(
+    SERIES.filter(x => row[x.key] != null).map(x => `${x.name} ${fmt(row[x.key])}`));
+  g.font = '400 12px "IBM Plex Mono", ui-monospace, monospace';
+  const bw = Math.max(...lines.map(t => g.measureText(t).width)) + 22;
+  const bh = lines.length * 17 + 13;
+  const bx = Math.min(hx + 12, w - P.r - bw), by = P.t + 6;
+  g.fillStyle = css("--surface"); g.strokeStyle = css("--line"); g.lineWidth = 1;
+  g.beginPath(); g.rect(bx, by, bw, bh); g.fill(); g.stroke();
+  g.textAlign = "left"; g.textBaseline = "top";
+  lines.forEach((t, i) => {
+    g.fillStyle = i ? css("--ink-2") : css("--ink");
+    g.fillText(t, bx + 11, by + 7 + i * 17);
+  });
+}
+
+$("nll").addEventListener("mousemove", ev => {
+  if (!LIVE.rows.length) return;
+  const box = ev.currentTarget.getBoundingClientRect();
+  const days = LIVE.cfg ? LIVE.cfg.days : 30;
+  const day = Math.round((ev.clientX - box.left - NLL_PAD.l)
+                         / (box.width - NLL_PAD.l - NLL_PAD.r) * days);
+  let best = 0;
+  LIVE.rows.forEach((r, i) => {
+    if (Math.abs(r.day - day) < Math.abs(LIVE.rows[best].day - day)) best = i;
+  });
+  if (best !== LIVE.hover){ LIVE.hover = best; drawNll(); }
+});
+$("nll").addEventListener("mouseleave", () => { LIVE.hover = null; drawNll(); });
+addEventListener("resize", drawNll);
+
+/* ?stream=… wins so a shared link carries the address; else the last one used here */
+(function(){
+  let url = new URLSearchParams(location.search).get("stream") || "";
+  if (!url){ try { url = localStorage.getItem("npcsim.stream") || ""; } catch (e) {} }
+  $("stream-url").value = url;
+  drawNll();
+  if (url) connect(url);
+})();
 
 paint(1);
 requestAnimationFrame(ts => { last = ts; frame(ts); });
