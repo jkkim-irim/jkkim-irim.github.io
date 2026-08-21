@@ -304,8 +304,8 @@ button{font:inherit; color:inherit; cursor:pointer}
     <div class="livebar">
       <span class="badge" id="badge" data-state="off">연결 안 됨</span>
       <input class="url" id="stream-url" type="url" spellcheck="false"
-             aria-label="라이브 스트림 주소"
-             placeholder="https://….trycloudflare.com/stream">
+             aria-label="연구 PC 의 라이브 주소"
+             placeholder="https://….trycloudflare.com/state">
       <button class="btn" id="connect">연결</button>
       <span class="runinfo" id="runinfo"></span>
     </div>
@@ -314,7 +314,8 @@ button{font:inherit; color:inherit; cursor:pointer}
             aria-label="일별 프로브 NLL 세 곡선 — 정체성, 사실, 일반능력"></canvas>
     <div class="tablewrap" id="nll-table-wrap">
       <p class="empty">받은 데이터가 없다. 연구 PC 에서 <code>python s0.py</code> 를 돌리고
-        터널 주소를 위에 붙이면 밤마다 한 줄씩 쌓인다.</p>
+        <code>cloudflared</code> 가 준 주소 + <code>/state</code> 를 위에 붙이면
+        밤마다 한 줄씩 쌓인다.</p>
     </div>
   </section>
 
@@ -711,11 +712,19 @@ function frame(ts){
 }
 
 /* ── live night-training feed ─────────────────────────────
-   The slow layer (QLoRA on a 5090) cannot run in a browser, so the research
-   machine streams its metrics over SSE and this panel only draws them. The page
-   works with nothing connected -- the badge says so instead of looking broken.
-   On a strict-CSP host (an Artifact preview) EventSource to another origin is
-   blocked outright and the badge stays on 끊김; that is the CSP, not the stream. */
+   The slow layer (QLoRA on a 5090) cannot run in a browser, so the research machine
+   publishes a JSON snapshot of the run and this panel polls it.
+
+   Polling, not SSE, and not as a fallback: a streaming GET does not survive a
+   cloudflared quick tunnel (measured -- headers and finite bodies arrive, a streaming
+   body never does, cloudflare/cloudflared#1449). It would also be the wrong size
+   anyway. One data point per night means a 2s poll is already far faster than the
+   numbers move. A snapshot is idempotent, so a dropped request costs nothing and there
+   is no backlog to replay.
+
+   The page works with nothing connected -- the badge says so rather than looking
+   broken. On a strict-CSP host (an Artifact preview) fetch to another origin is
+   blocked outright and it stays disconnected; that is the CSP, not the publisher. */
 const SERIES = [
   {key:"identity", name:"정체성",  tok:"--s1"},
   {key:"fact",     name:"사실",    tok:"--s2"},
@@ -723,7 +732,9 @@ const SERIES = [
 ];
 TOKENS.push("--s1", "--s2", "--s3", "--ink", "--ink-2", "--ink-3", "--surface");
 
-const LIVE = {src:null, cfg:null, rows:[], state:"off", hover:null};
+const POLL_RUNNING = 2000, POLL_FINISHED = 15000;
+const LIVE = {url:"", timer:null, cfg:null, rows:[], done:false,
+              state:"off", hover:null, misses:0};
 
 $("series-legend").innerHTML = SERIES
   .map(x => `<span><i style="background:var(${x.tok})"></i>${x.name} NLL</span>`).join("");
@@ -734,39 +745,68 @@ function setBadge(state, text){
   $("badge").textContent = text;
 }
 
-function onEvent(ev){
-  if (ev.kind === "config"){
-    LIVE.cfg = ev; LIVE.rows = [];
-    const tech = Object.entries(ev.tech || {}).map(([k,v]) => `${k}=${v ? 1 : 0}`).join(" ");
-    $("runinfo").textContent = `${ev.run} · ${ev.model} · ${ev.steps}스텝/밤 · ${tech}`;
-    setBadge("live", "수신 중");
-  } else if (ev.kind === "day"){
-    LIVE.rows = LIVE.rows.filter(r => r.day !== ev.day).concat(ev).sort((a,b) => a.day - b.day);
-    setBadge("live", `${ev.day}일 / ${LIVE.cfg ? LIVE.cfg.days : 30}`);
-  } else if (ev.kind === "done"){
-    setBadge("done", `${ev.days}일 완료`);
+function applySnapshot(snap){
+  LIVE.cfg = snap.config || null;
+  LIVE.rows = snap.days || [];
+  LIVE.done = !!snap.done;
+  if (LIVE.cfg){
+    const tech = Object.entries(LIVE.cfg.tech || {})
+      .map(([k, v]) => `${k}=${v ? 1 : 0}`).join(" ");
+    $("runinfo").textContent =
+      `${LIVE.cfg.run} · ${LIVE.cfg.model} · ${LIVE.cfg.steps}스텝/밤 · ${tech}`;
   }
+  const total = LIVE.cfg ? LIVE.cfg.days : 30;
+  const last = LIVE.rows.length ? LIVE.rows[LIVE.rows.length - 1].day : null;
+  setBadge(LIVE.done ? "done" : "live",
+           LIVE.done ? `${total}일 완료`
+                     : (last === null ? "대기 중" : `${last}일 / ${total}`));
   $("live-sub").textContent = LIVE.rows.length
-    ? `${LIVE.rows.length}개 지점 수신` : "연구 PC 에서만 돈다";
-  drawNll(); renderTable();
+    ? `${LIVE.rows.length}개 지점` : "연구 PC 에서만 돈다";
+  drawNll();
+  renderTable();
+}
+
+async function pollOnce(){
+  const sep = LIVE.url.includes("?") ? "&" : "?";
+  const res = await fetch(LIVE.url + sep + "t=" + Date.now(), {cache:"no-store"});
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  applySnapshot(await res.json());
+}
+
+function schedule(){
+  clearTimeout(LIVE.timer);
+  LIVE.timer = setTimeout(tick, LIVE.done ? POLL_FINISHED : POLL_RUNNING);
+}
+
+async function tick(){
+  /* a hidden tab still counts as a visitor hitting the research machine */
+  if (LIVE.url && !document.hidden){
+    try {
+      await pollOnce();
+      LIVE.misses = 0;
+    } catch (e) {
+      if (++LIVE.misses >= 2) setBadge("lost", "연결 안 됨 — 재시도 중");
+    }
+  }
+  schedule();
 }
 
 function connect(url){
-  if (LIVE.src){ LIVE.src.close(); LIVE.src = null; }
+  clearTimeout(LIVE.timer);
+  LIVE.timer = null;
+  LIVE.url = url;
+  LIVE.misses = 0;
   if (!url){ setBadge("off", "연결 안 됨"); return; }
-  try { localStorage.setItem("npcsim.stream", url); } catch (e) { /* private window */ }
+  try { localStorage.setItem("npcsim.live", url); } catch (e) { /* private window */ }
   setBadge("off", "연결 중");
-  const src = new EventSource(url);
-  LIVE.src = src;
-  src.onmessage = m => { try { onEvent(JSON.parse(m.data)); } catch (e) { /* keepalive */ } };
-  src.onerror = () => setBadge("lost", "끊김 — 재시도 중");
-  src.onopen = () => { if (LIVE.state !== "live") setBadge("live", "연결됨"); };
+  tick();
 }
 
 $("connect").addEventListener("click", () => connect($("stream-url").value.trim()));
 $("stream-url").addEventListener("keydown", e => {
   if (e.key === "Enter") connect($("stream-url").value.trim());
 });
+addEventListener("visibilitychange", () => { if (!document.hidden && LIVE.url) tick(); });
 
 const fmt = v => v == null ? "—" : Number(v).toFixed(3);
 
@@ -817,7 +857,7 @@ function drawNll(){
   if (!LIVE.rows.length){
     g.fillStyle = css("--ink-3"); g.textAlign = "center"; g.textBaseline = "middle";
     g.font = '400 13px "IBM Plex Sans KR", sans-serif';
-    g.fillText("스트림에 연결되면 여기에 곡선이 그려진다",
+    g.fillText("연구 PC 에 연결되면 여기에 곡선이 그려진다",
                (P.l + w - P.r) / 2, (P.t + h - P.b) / 2);
     return;
   }
@@ -888,7 +928,7 @@ addEventListener("resize", drawNll);
 /* ?stream=… wins so a shared link carries the address; else the last one used here */
 (function(){
   let url = new URLSearchParams(location.search).get("stream") || "";
-  if (!url){ try { url = localStorage.getItem("npcsim.stream") || ""; } catch (e) {} }
+  if (!url){ try { url = localStorage.getItem("npcsim.live") || ""; } catch (e) {} }
   $("stream-url").value = url;
   drawNll();
   if (url) connect(url);
