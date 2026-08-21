@@ -10,7 +10,9 @@
   --ink:#111719; --ink-2:#414D4A; --ink-3:#6D7975;
   --accent:#1F6E7B; --ok:#4F7A31; --warn:#B08415; --crit:#AC3F27;
   --t-water:#3D6E88; --t-rock:#67736E; --t-void:#E8EDE6;
-  --t-hill:#7F9159; --t-hut:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72; --t-forge:#AA5C34;
+  --t-hill:#7F9159; --t-home:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72;
+  --t-forge:#AA5C34; --t-diner:#B5783F; --t-hall:#7A72A0;
+  --t-road:#8A8A84; --t-wall:#4A423C;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -18,7 +20,9 @@
     --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
     --accent:#4FA3AE; --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
     --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
-    --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
+    --t-hill:#5D6E3E; --t-home:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350;
+    --t-forge:#8C4726; --t-diner:#8F5A26; --t-hall:#565080;
+    --t-road:#605E58; --t-wall:#3A332E;
   }
 }
 :root[data-theme="dark"]{
@@ -26,7 +30,9 @@
   --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
   --accent:#4FA3AE; --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
   --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
-  --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
+  --t-hill:#5D6E3E; --t-home:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350;
+  --t-forge:#8C4726; --t-diner:#8F5A26; --t-hall:#565080;
+  --t-road:#605E58; --t-wall:#3A332E;
 }
 
 *{box-sizing:border-box}
@@ -108,25 +114,19 @@ body{
   </div>
 
   <canvas id="map" width="760" height="760" role="img"
-          aria-label="12×12 마을 지도와 다섯 사람의 현재 위치"></canvas>
+          aria-label="마을 지도와 사람들의 현재 위치"></canvas>
   <div class="legend" id="legend"></div>
   <div class="cast" id="cast"></div>
   <p class="note" id="note"></p>
 </div>
 
 <script>
-const D = {
- "map": ["~..H........","~..HH.......","~.U.........","~...........","~R..........",
-         "~...........","~.....QQ....","~.....QQ...#","~..........#","~......B....",
-         "~...........","~..........#"],
- "size": 12,
- "placeOf": {"H":"언덕","U":"오두막","R":"강가","Q":"광장","B":"대장간"},
- "blocked": "~#",
- "goals": ["먹기","자기","일하기","대화","피신","배회","돌보기","모으기"],
- "needs": ["배고픔","피로","안전","사회","호기심"],
- "stepsPerTick": 6, "ticksPerDay": 24, "stepsPerDay": 144,
- "npcName": "미나", "days": 30
-};
+/* The map arrives with the relay. This page used to keep its own copy of it, which went
+   stale the moment the village grew: it was still drawing a 12x12 grid with 오두막 on it
+   and no 시청 at all, while the research machine ran a 20x20 map with a river sealing the
+   diner. One copy now, and it travels with the run. */
+let D = null;                 /* {map,size,blocked,placeOf,terrainName,homes} */
+let BUILT = {road: [], wall: []};
 
 /* Relay only. This page does not simulate anything: it plays back frames the research
    machine publishes while a session runs. The browser-side port of world/npc/policy that
@@ -136,21 +136,36 @@ const D = {
    carries a rolling window of the last ten seconds. Sixty frames per request rather than
    one current frame, because at six steps a second a once-a-second poll would show the
    NPCs teleporting. */
-const N = D.size;
-const BLOCKED = new Set(D.blocked.split(""));
-const PLACES = [...new Set(Object.values(D.placeOf))];
-const TERRAIN = {"~":"--t-water","#":"--t-rock",".":"--t-void",
-                 "H":"--t-hill","U":"--t-hut","R":"--t-river","Q":"--t-square","B":"--t-forge"};
+/* One colour per map character. Homes are digits, so they share a token. */
+const TERRAIN = {"~":"--t-water","^":"--t-rock","#":"--t-rock",".":"--t-void",
+                 "H":"--t-hill","R":"--t-river","Q":"--t-square","B":"--t-forge",
+                 "F":"--t-diner","C":"--t-hall","U":"--t-home"};
+for (const d of "123456") TERRAIN[d] = "--t-home";
+const tokenOf = ch => TERRAIN[ch] || "--t-void";
 
-const passable = (r,c) => r>=0 && r<N && c>=0 && c<N && !BLOCKED.has(D.map[r][c]);
-const placeAt = (r,c) => passable(r,c) ? (D.placeOf[D.map[r][c]] ?? null) : null;
+/* Built things override terrain, exactly as world.passable does: a wall blocks, a road
+   carries over anything -- which is what makes a road on the river a bridge. */
+const key = (r,c) => r + "," + c;
+let ROAD = new Set(), WALL = new Set();
+const size = () => (D ? D.size : 0);
+/* tileAt, not at -- draw() already has a local `at` for the current frame. */
+const tileAt = (r,c) => (D && r>=0 && r<D.size && c>=0 && c<D.size) ? D.map[r][c] : null;
+const passable = (r,c) => {
+  const ch = tileAt(r,c);
+  if (ch === null || WALL.has(key(r,c))) return false;
+  if (ROAD.has(key(r,c))) return true;
+  return !D.blocked.includes(ch);
+};
+const placeAt = (r,c) => { const ch = tileAt(r,c); return ch === null ? null
+                           : (D.placeOf[ch] ?? null); };
 
 const $ = id => document.getElementById(id);
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const TOKENS = ["--paper","--line","--accent","--ink","--ink-2","--ink-3","--crit","--warn",
-                "--ok","--surface","--t-water","--t-rock","--t-void","--t-hill","--t-hut",
-                "--t-river","--t-square","--t-forge"];
+                "--ok","--surface","--t-water","--t-rock","--t-void","--t-hill","--t-home",
+                "--t-river","--t-square","--t-forge","--t-diner","--t-hall",
+                "--t-road","--t-wall"];
 let PAL = {};
 function readPalette(){
   const cs = getComputedStyle(document.documentElement);
@@ -158,9 +173,27 @@ function readPalette(){
 }
 const css = v => PAL[v] || "";
 
-$("legend").innerHTML = [["--t-hill","언덕"],["--t-hut","오두막"],["--t-river","강가"],
-  ["--t-square","광장"],["--t-forge","대장간"],["--t-water","강"],["--t-rock","바위"]]
-  .map(([v,n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join("");
+/* The legend is built from the map that arrived, so a new place shows up by itself. */
+const LEGEND_ORDER = ["식당","시청","광장","대장간","언덕","강가"];
+function drawLegend(){
+  if (!D){ $("legend").innerHTML = ""; return; }
+  const seen = new Map();
+  for (const row of D.map) for (const ch of row){
+    const p = D.placeOf[ch];
+    if (p && !seen.has(p)) seen.set(p, tokenOf(ch));
+  }
+  const homes = [...seen.keys()].filter(p => p.startsWith("집"));
+  for (const h of homes) seen.delete(h);
+  const rows = [];
+  for (const p of LEGEND_ORDER) if (seen.has(p)) rows.push([seen.get(p), p]);
+  for (const [p, t] of seen) if (!LEGEND_ORDER.includes(p)) rows.push([t, p]);
+  if (homes.length) rows.push(["--t-home", `집 ${homes.length}채`]);
+  rows.push(["--t-water","강"], ["--t-rock","산"]);
+  if (ROAD.size) rows.push(["--t-road", `도로 ${ROAD.size}`]);
+  if (WALL.size) rows.push(["--t-wall", `벽 ${WALL.size}`]);
+  $("legend").innerHTML = rows
+    .map(([v,n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join("");
+}
 
 /* ── playback ─────────────────────────────────────────
    Held deliberately behind the newest frame. Playing the newest one the instant it lands
@@ -174,6 +207,20 @@ const PLAY = {frames: [], head: null, rate: 6, cast: [], now: null,
               starving: false, lastDraw: 0};
 
 function ingest(payload){
+  /* The map and what has been built arrive with the frames. A page that kept its own copy
+     drew the village it was written against; this one draws the village that is running. */
+  if (payload.world && payload.world.map){
+    const fresh = !D || D.size !== payload.world.size
+                     || D.map.join("|") !== payload.world.map.join("|");
+    D = payload.world;
+    if (fresh) drawLegend();
+  }
+  if (payload.built){
+    const before = ROAD.size + WALL.size;
+    ROAD = new Set((payload.built.road || []).map(([r,c]) => key(r,c)));
+    WALL = new Set((payload.built.wall || []).map(([r,c]) => key(r,c)));
+    if (before !== ROAD.size + WALL.size) drawLegend();
+  }
   PLAY.rate = payload.rate || 6;
   PLAY.cast = payload.cast || [];
   PLAY.now = payload.now || null;
@@ -212,11 +259,16 @@ function draw(){
   }
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const N = size();
+  if (!N) return;
   const S = box / N;
   g.clearRect(0, 0, box, box);
 
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++){
-    g.fillStyle = css(TERRAIN[D.map[r][c]] || "--t-void");
+    let tok = tokenOf(D.map[r][c]);
+    if (ROAD.has(key(r,c))) tok = "--t-road";
+    else if (WALL.has(key(r,c))) tok = "--t-wall";
+    g.fillStyle = css(tok);
     g.fillRect(c*S, r*S, S, S);
   }
   g.strokeStyle = css("--line"); g.globalAlpha = .45; g.lineWidth = 1;
