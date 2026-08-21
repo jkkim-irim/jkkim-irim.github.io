@@ -1,1 +1,1 @@
-{"config": {"run": "runs/s0", "days": 2, "model": "Qwen/Qwen2.5-3B-Instruct", "npc": "미나", "steps": 100, "stream": "https://blink-citysearch-order-scope.trycloudflare.com/state", "tech": {"rehearsal": true, "accumulate": true}}, "days": [], "done": false}
+{"config": {"run": "runs/s0", "days": 2, "model": "Qwen/Qwen2.5-3B-Instruct", "npc": "미나", "steps": 100, "tech": {"rehearsal": true, "accumulate": true}}, "days": [], "done": false}
