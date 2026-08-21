@@ -1,1 +1,1 @@
-{"config": {"run": "runs/s0", "days": 2, "model": "Qwen/Qwen2.5-3B-Instruct", "npc": "미나", "steps": 100, "tech": {"rehearsal": true, "accumulate": true}}, "days": [], "done": false}
+{"config": {"run": "runs/s0", "days": 30, "model": "Qwen/Qwen2.5-3B-Instruct", "npc": "미나", "steps": 100, "stream": "https://derek-championships-parallel-interests.trycloudflare.com/state", "tech": {"rehearsal": true, "accumulate": true}}, "days": [], "done": false}
