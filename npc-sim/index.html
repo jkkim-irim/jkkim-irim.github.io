@@ -196,11 +196,6 @@ button{font:inherit; color:inherit; cursor:pointer}
 .badge[data-state="lost"]{color:var(--crit); border-color:currentColor}
 @keyframes pulse{50%{opacity:.28}}
 @media (prefers-reduced-motion: reduce){.badge[data-state="live"]::before{animation:none}}
-.url{
-  flex:1 1 300px; min-width:0; font:400 12.5px/1.2 "IBM Plex Mono",ui-monospace,monospace;
-  padding:7px 10px; color:var(--ink); background:var(--paper);
-  border:1px solid var(--line); border-radius:2px;
-}
 .runinfo{font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums}
 .legend.series i{width:15px; height:3px; border-radius:2px}
 #nll{display:block; width:100%; height:auto; margin-top:4px; cursor:crosshair}
@@ -302,26 +297,23 @@ button{font:inherit; color:inherit; cursor:pointer}
   <section class="card live">
     <h2>밤 학습 — 느린 층 <em id="live-sub">연구 PC 에서만 돈다</em></h2>
     <div class="livebar">
-      <span class="badge" id="badge" data-state="off">연결 안 됨</span>
-      <input class="url" id="stream-url" type="url" spellcheck="false"
-             aria-label="연구 PC 의 라이브 주소"
-             placeholder="https://….trycloudflare.com/state">
-      <button class="btn" id="connect">연결</button>
+      <span class="badge" id="badge" data-state="off">기록 없음</span>
       <span class="runinfo" id="runinfo"></span>
     </div>
     <div class="legend series" id="series-legend"></div>
     <canvas id="nll" width="1120" height="300" role="img"
             aria-label="일별 프로브 NLL 세 곡선 — 정체성, 사실, 일반능력"></canvas>
     <div class="tablewrap" id="nll-table-wrap">
-      <p class="empty">받은 데이터가 없다. 연구 PC 에서 <code>python s0.py</code> 를 돌리고
-        <code>cloudflared</code> 가 준 주소 + <code>/state</code> 를 위에 붙이면
-        밤마다 한 줄씩 쌓인다.</p>
+      <p class="empty" id="empty-note">아직 발행된 기록이 없다.</p>
     </div>
   </section>
 
   <div class="note">
-    <p><b>이 페이지는 브라우저 안에서 시뮬레이션을 돌린다.</b> 연구 PC 의 파이썬 프로세스에
-      붙어 있는 게 아니다 — <code>world.py</code> · <code>npc.py</code> 를 JS 로 이식한 것이고,
+    <p><b>이 페이지는 관전용이다.</b> 위 마을은 당신의 브라우저에서 돌아가고, 아래 곡선은
+      연구 PC 가 발행해 둔 기록을 읽어 그린 것이다. 여기서 학습을 시작하거나 멈출 수는 없다 —
+      제어는 연구 PC 의 로컬 대시보드에만 있다.</p>
+    <p><b>마을은 브라우저 안에서 시뮬레이션된다.</b> 연구 PC 에 붙어 있는 게 아니다 —
+      <code>world.py</code> · <code>npc.py</code> 를 JS 로 이식한 것이고,
       지도·감쇠율·목표↔장소↔니즈 매핑은 <code>tools/export_world.py</code> 가 파이썬에서
       뽑아낸 값을 그대로 쓴다. 상수는 표류하지 않지만 <b>난수는 다르다</b> —
       같은 시드라도 파이썬 run 과 스텝 단위로 일치하지는 않는다.</p>
@@ -711,20 +703,22 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 
-/* ── live night-training feed ─────────────────────────────
-   The slow layer (QLoRA on a 5090) cannot run in a browser, so the research machine
-   publishes a JSON snapshot of the run and this panel polls it.
+/* ── night-training record ────────────────────────────────
+   The slow layer (QLoRA on a 5090) cannot run in a browser, so this panel only draws
+   numbers the research machine produced. Two sources, and the page picks by URL:
 
-   Polling, not SSE, and not as a fallback: a streaming GET does not survive a
-   cloudflared quick tunnel (measured -- headers and finite bodies arrive, a streaming
-   body never does, cloudflare/cloudflared#1449). It would also be the wrong size
-   anyway. One data point per night means a 2s poll is already far faster than the
-   numbers move. A snapshot is idempotent, so a dropped request costs nothing and there
-   is no backlog to replay.
+     no ?src=      the published record, live.json next to this page. Fetched once --
+                   a static file only changes when the site is redeployed, so polling
+                   it would be pure noise, and a visitor is never asked for an address.
+                   Works with the research machine switched off, which is the point.
+     ?src=<url>    a live publisher (live.py's /state). Polled. This is how the local
+                   dashboard embeds this page while a run is going; it is not something
+                   a visitor is expected to set.
 
-   The page works with nothing connected -- the badge says so rather than looking
-   broken. On a strict-CSP host (an Artifact preview) fetch to another origin is
-   blocked outright and it stays disconnected; that is the CSP, not the publisher. */
+   Polling, when it happens, is not SSE and not a fallback: a streaming GET does not
+   survive a cloudflared tunnel (measured -- headers and finite bodies arrive, a
+   streaming body never does, cloudflare/cloudflared#1449), and one data point per
+   night makes a 2s poll ~30x faster than the numbers move anyway. */
 const SERIES = [
   {key:"identity", name:"정체성",  tok:"--s1"},
   {key:"fact",     name:"사실",    tok:"--s2"},
@@ -732,9 +726,11 @@ const SERIES = [
 ];
 TOKENS.push("--s1", "--s2", "--s3", "--ink", "--ink-2", "--ink-3", "--surface");
 
+const SRC = new URLSearchParams(location.search).get("src") || "";
+const LIVE_MODE = !!SRC;
+const SOURCE = SRC || "live.json";
 const POLL_RUNNING = 2000, POLL_FINISHED = 15000;
-const LIVE = {url:"", timer:null, cfg:null, rows:[], done:false,
-              state:"off", hover:null, misses:0};
+const LIVE = {timer:null, cfg:null, rows:[], done:false, state:"off", hover:null, misses:0};
 
 $("series-legend").innerHTML = SERIES
   .map(x => `<span><i style="background:var(${x.tok})"></i>${x.name} NLL</span>`).join("");
@@ -750,63 +746,64 @@ function applySnapshot(snap){
   LIVE.rows = snap.days || [];
   LIVE.done = !!snap.done;
   if (LIVE.cfg){
+    /* only what the snapshot carries -- an archived curve knows its run and model but
+       not the step count or the flags, and inventing them would be a confident lie */
+    const parts = [LIVE.cfg.run, LIVE.cfg.model];
+    if (LIVE.cfg.steps) parts.push(`${LIVE.cfg.steps}스텝/밤`);
     const tech = Object.entries(LIVE.cfg.tech || {})
       .map(([k, v]) => `${k}=${v ? 1 : 0}`).join(" ");
-    $("runinfo").textContent =
-      `${LIVE.cfg.run} · ${LIVE.cfg.model} · ${LIVE.cfg.steps}스텝/밤 · ${tech}`;
+    if (tech) parts.push(tech);
+    $("runinfo").textContent = parts.filter(Boolean).join(" · ");
   }
   const total = LIVE.cfg ? LIVE.cfg.days : 30;
   const last = LIVE.rows.length ? LIVE.rows[LIVE.rows.length - 1].day : null;
-  setBadge(LIVE.done ? "done" : "live",
-           LIVE.done ? `${total}일 완료`
-                     : (last === null ? "대기 중" : `${last}일 / ${total}`));
-  $("live-sub").textContent = LIVE.rows.length
-    ? `${LIVE.rows.length}개 지점` : "연구 PC 에서만 돈다";
+  if (LIVE_MODE){
+    setBadge(LIVE.done ? "done" : "live",
+             LIVE.done ? `${total}일 완료`
+                       : (last === null ? "대기 중" : `${last}일 / ${total}`));
+  } else {
+    setBadge(LIVE.rows.length ? "done" : "off",
+             last === null ? "기록 없음"
+                           : (LIVE.done ? `${total}일 완료 기록` : `${last}일까지 기록`));
+  }
+  $("live-sub").textContent =
+    (LIVE_MODE ? "실시간" : "발행된 기록")
+    + (LIVE.rows.length ? ` · ${LIVE.rows.length}개 지점` : " · 없음");
   drawNll();
   renderTable();
 }
 
-async function pollOnce(){
-  const sep = LIVE.url.includes("?") ? "&" : "?";
-  const res = await fetch(LIVE.url + sep + "t=" + Date.now(), {cache:"no-store"});
+async function fetchSnapshot(){
+  const sep = SOURCE.includes("?") ? "&" : "?";
+  const res = await fetch(SOURCE + sep + "t=" + Date.now(), {cache:"no-store"});
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   applySnapshot(await res.json());
 }
 
-function schedule(){
-  clearTimeout(LIVE.timer);
-  LIVE.timer = setTimeout(tick, LIVE.done ? POLL_FINISHED : POLL_RUNNING);
-}
-
 async function tick(){
   /* a hidden tab still counts as a visitor hitting the research machine */
-  if (LIVE.url && !document.hidden){
+  if (!document.hidden){
     try {
-      await pollOnce();
+      await fetchSnapshot();
       LIVE.misses = 0;
     } catch (e) {
-      if (++LIVE.misses >= 2) setBadge("lost", "연결 안 됨 — 재시도 중");
+      if (LIVE_MODE){
+        if (++LIVE.misses >= 2) setBadge("lost", "연결 안 됨 — 재시도 중");
+      } else {
+        setBadge("off", "발행된 기록 없음");
+        $("live-sub").textContent = "발행된 기록 · 없음";
+      }
     }
   }
-  schedule();
+  if (LIVE_MODE){
+    clearTimeout(LIVE.timer);
+    LIVE.timer = setTimeout(tick, LIVE.done ? POLL_FINISHED : POLL_RUNNING);
+  }
 }
 
-function connect(url){
-  clearTimeout(LIVE.timer);
-  LIVE.timer = null;
-  LIVE.url = url;
-  LIVE.misses = 0;
-  if (!url){ setBadge("off", "연결 안 됨"); return; }
-  try { localStorage.setItem("npcsim.live", url); } catch (e) { /* private window */ }
-  setBadge("off", "연결 중");
-  tick();
+if (LIVE_MODE){
+  addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
 }
-
-$("connect").addEventListener("click", () => connect($("stream-url").value.trim()));
-$("stream-url").addEventListener("keydown", e => {
-  if (e.key === "Enter") connect($("stream-url").value.trim());
-});
-addEventListener("visibilitychange", () => { if (!document.hidden && LIVE.url) tick(); });
 
 const fmt = v => v == null ? "—" : Number(v).toFixed(3);
 
@@ -925,14 +922,8 @@ $("nll").addEventListener("mousemove", ev => {
 $("nll").addEventListener("mouseleave", () => { LIVE.hover = null; drawNll(); });
 addEventListener("resize", drawNll);
 
-/* ?stream=… wins so a shared link carries the address; else the last one used here */
-(function(){
-  let url = new URLSearchParams(location.search).get("stream") || "";
-  if (!url){ try { url = localStorage.getItem("npcsim.live") || ""; } catch (e) {} }
-  $("stream-url").value = url;
-  drawNll();
-  if (url) connect(url);
-})();
+drawNll();
+tick();
 
 paint(1);
 requestAnimationFrame(ts => { last = ts; frame(ts); });
