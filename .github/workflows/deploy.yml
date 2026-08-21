@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - "assets/**"
+      # npc-sim publishes runs as npc-sim/live.json. Without this a data-only
+      # commit never rebuilds, so the page keeps serving the previous run.
+      - "npc-sim/**"
       - "**.bib"
       - "**.html"
       - "**.js"
@@ -34,6 +37,9 @@ on:
       - main
     paths:
       - "assets/**"
+      # npc-sim publishes runs as npc-sim/live.json. Without this a data-only
+      # commit never rebuilds, so the page keeps serving the previous run.
+      - "npc-sim/**"
       - "**.bib"
       - "**.html"
       - "**.js"
