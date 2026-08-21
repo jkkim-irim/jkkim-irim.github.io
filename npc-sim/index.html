@@ -2,342 +2,116 @@
 <title>npc-sim</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <style>
 :root{
   --paper:#EFF2ED; --surface:#E5EAE3; --sunk:#DAE1D8; --line:#C4CDC0;
   --ink:#111719; --ink-2:#414D4A; --ink-3:#6D7975;
-  --accent:#1F6E7B; --accent-ink:#0E3C44; --accent-soft:#CFE1E2; --on-accent:#FFFFFF;
-  --ok:#4F7A31; --warn:#B08415; --crit:#AC3F27;
-  /* chart series, fixed order identity/fact/general.
-     dataviz reference slots 1-3, re-validated against this page's surfaces.
-     Deliberately not the status hues above -- those mean "this need is critical". */
-  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --accent:#1F6E7B; --ok:#4F7A31; --warn:#B08415; --crit:#AC3F27;
   --t-water:#3D6E88; --t-rock:#67736E; --t-void:#E8EDE6;
   --t-hill:#7F9159; --t-hut:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72; --t-forge:#AA5C34;
-  --shadow:0 1px 0 rgba(17,23,25,.06), 0 8px 24px -18px rgba(17,23,25,.5);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --paper:#0C1113; --surface:#141B1D; --sunk:#0A0F10; --line:#26312F;
     --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
-    --accent:#4FA3AE; --accent-ink:#BFE0E3; --accent-soft:#1B3A3F; --on-accent:#080E0F;
-    --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
-    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --accent:#4FA3AE; --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
     --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
     --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
-    --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 28px -20px #000;
   }
 }
 :root[data-theme="dark"]{
   --paper:#0C1113; --surface:#141B1D; --sunk:#0A0F10; --line:#26312F;
   --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
-  --accent:#4FA3AE; --accent-ink:#BFE0E3; --accent-soft:#1B3A3F; --on-accent:#080E0F;
-  --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
-  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --accent:#4FA3AE; --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
   --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
   --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
-  --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 28px -20px #000;
 }
 
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--paper); color:var(--ink);
   font-family:"IBM Plex Sans KR",system-ui,-apple-system,sans-serif;
-  font-size:15px; line-height:1.6;
-  -webkit-font-smoothing:antialiased;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1180px; margin:0 auto; padding:clamp(20px,4vw,44px) clamp(16px,4vw,32px) 64px}
+.wrap{
+  max-width:820px; margin:0 auto;
+  padding:clamp(14px,3vw,28px) clamp(12px,3vw,24px) clamp(20px,4vw,40px);
+}
 
-/* ?embed=1 -- the local dashboard iframes this page for the curve. Drop the masthead
-   and the closing notes there: a dek pointing at the public page, shown inside the
-   local control panel, only confuses. Everything measured stays. */
-:root[data-embed] .eyebrow,
-:root[data-embed] h1,
-:root[data-embed] .dek,
-:root[data-embed] .note{display:none}
-:root[data-embed] .wrap{padding-top:clamp(12px,2vw,20px); padding-bottom:20px}
-
-/* ── masthead ─────────────────────────────────────────── */
-.eyebrow{
+/* ── status ───────────────────────────────────────────── */
+.top{display:flex; flex-wrap:wrap; align-items:center; gap:9px 14px; margin-bottom:12px}
+.badge{
+  display:inline-flex; align-items:center; gap:7px; flex:none;
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin:0 0 10px;
+  letter-spacing:.09em; padding:5px 11px; border-radius:2px;
+  border:1px solid var(--line); color:var(--ink-3);
 }
-h1{
-  font-family:"Gowun Batang",Batang,serif; font-weight:700;
-  font-size:clamp(30px,5vw,46px); line-height:1.1; margin:0 0 10px;
-  letter-spacing:-.01em; text-wrap:balance;
-}
-.dek{margin:0 0 4px; max-width:60ch; color:var(--ink-2)}
-.dek b{color:var(--ink); font-weight:600}
-
-/* ── headline metric ──────────────────────────────────── */
-.gauge{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
-  margin:28px 0 20px; background:var(--line); border:1px solid var(--line);
-  border-radius:3px; overflow:hidden;
-}
-.gauge > div{background:var(--surface); padding:13px 16px 15px}
-.gauge dt{
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; font-weight:500;
-  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin:0 0 4px;
-}
-.gauge dd{
-  margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace;
-  font-size:26px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1.15;
-  letter-spacing:-.02em;
-}
-.gauge dd small{display:block; font-family:"IBM Plex Sans KR",sans-serif;
-  font-size:12px; font-weight:400; color:var(--ink-3); letter-spacing:0; margin-top:3px}
-.gauge .lead dd{color:var(--accent)}
-
-/* ── controls ─────────────────────────────────────────── */
-.bar{
-  display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px;
-  padding:12px 14px; background:var(--surface); border:1px solid var(--line);
-  border-radius:3px; margin-bottom:18px; box-shadow:var(--shadow);
-}
-button{font:inherit; color:inherit; cursor:pointer}
-.btn{
-  display:inline-flex; align-items:center; gap:8px;
-  background:var(--paper); border:1px solid var(--line); border-radius:2px;
-  padding:7px 14px; font-size:14px; font-weight:500;
-  transition:background .12s, border-color .12s;
-}
-.btn:hover{border-color:var(--accent); background:var(--accent-soft)}
-.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
-.btn.primary:hover{filter:brightness(1.08)}
-.glyph{width:0; height:0; border-style:solid; flex:none}
-.glyph.play{border-width:5.5px 0 5.5px 9px; border-color:transparent transparent transparent currentColor}
-.glyph.pause{width:9px; height:11px; border:none;
-  border-left:3px solid currentColor; border-right:3px solid currentColor; background:none}
-.glyph.reset{width:11px; height:11px; border:none; position:relative}
-.glyph.reset::before{content:"↺"; position:absolute; inset:-6px 0 0; font-size:15px; line-height:1}
-
-.seg{display:inline-flex; border:1px solid var(--line); border-radius:2px; overflow:hidden}
-.seg button{
-  background:var(--paper); border:0; padding:7px 12px; font-size:13px; font-weight:500;
-  color:var(--ink-3); border-left:1px solid var(--line);
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;
-}
-.seg button:first-child{border-left:0}
-.seg button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent-ink)}
-.seg.words button{font-family:"IBM Plex Sans KR",sans-serif}
-.lbl{
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; font-weight:500;
-  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
-}
-.seed{
-  width:76px; font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;
-  font-variant-numeric:tabular-nums; padding:7px 9px; color:var(--ink);
-  background:var(--paper); border:1px solid var(--line); border-radius:2px;
+.badge::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor}
+.badge[data-state="live"]{color:var(--crit); border-color:currentColor}
+.badge[data-state="live"]::before{animation:pulse 1.4s ease-in-out infinite}
+.badge[data-state="wait"]{color:var(--warn); border-color:currentColor}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.badge[data-state="live"]::before{animation:none}}
+.clock{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:19px; font-weight:500;
+  font-variant-numeric:tabular-nums; letter-spacing:-.01em;
 }
 .spacer{flex:1 1 auto; min-width:0}
-:where(button,input):focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-
-/* ── main panel ───────────────────────────────────────── */
-.panel{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; align-items:start}
-@media (max-width:820px){.panel{grid-template-columns:minmax(0,1fr)}}
-.card{
-  background:var(--surface); border:1px solid var(--line); border-radius:3px;
-  padding:16px; box-shadow:var(--shadow);
+.who{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11.5px;
+  color:var(--ink-3); letter-spacing:.02em;
 }
-.card h2{
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; font-weight:500;
-  letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3);
-  margin:0 0 12px; display:flex; justify-content:space-between; gap:10px;
-}
-.card h2 em{font-style:normal; color:var(--ink-2); letter-spacing:.04em; text-transform:none}
-#map{display:block; width:100%; height:auto; border-radius:2px; background:var(--t-void)}
 
+/* ── the village ──────────────────────────────────────── */
+#map{
+  display:block; width:100%; height:auto; border-radius:3px;
+  background:var(--t-void); border:1px solid var(--line);
+}
 .legend{
-  display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:12px;
+  display:flex; flex-wrap:wrap; gap:4px 13px; margin-top:11px;
   font-size:12px; color:var(--ink-2);
 }
 .legend span{display:inline-flex; align-items:center; gap:6px}
 .legend i{width:10px; height:10px; border-radius:2px; flex:none}
 
-/* ── need meters ──────────────────────────────────────── */
-.meters{display:flex; flex-direction:column; gap:11px}
-.meter{display:grid; grid-template-columns:52px minmax(0,1fr) 44px; gap:9px; align-items:center}
-.meter .name{font-size:13px; color:var(--ink-2)}
-.meter .track{position:relative; height:9px; background:var(--sunk); border-radius:1px; overflow:hidden}
-.meter .fill{position:absolute; inset:0 auto 0 0; width:0; border-radius:1px; transition:width .1s linear}
-.meter .avg{position:absolute; top:-2px; bottom:-2px; width:1px; background:var(--ink); opacity:.42}
-.meter .val{
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12.5px;
-  font-variant-numeric:tabular-nums; text-align:right; color:var(--ink-2);
+/* ── who is doing what ────────────────────────────────── */
+.cast{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:1px;
+  margin-top:14px; background:var(--line); border:1px solid var(--line);
+  border-radius:3px; overflow:hidden;
 }
-@media (prefers-reduced-motion: reduce){.meter .fill{transition:none}}
-
-/* ── goal tally ───────────────────────────────────────── */
-.tally{display:flex; flex-direction:column; gap:6px}
-.trow{display:grid; grid-template-columns:46px minmax(0,1fr) 34px; gap:9px; align-items:center}
-.trow .g{font-size:12.5px; color:var(--ink-2); white-space:nowrap}
-.trow .g.dim{color:var(--ink-3)}
-.trow .b{height:7px; background:var(--sunk); border-radius:1px; overflow:hidden}
-.trow .b i{display:block; height:100%; width:0; background:var(--accent); opacity:.75}
-.trow .b i.sparse{background:var(--ink-3); opacity:.5}
-.trow .n{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
-  font-variant-numeric:tabular-nums; text-align:right; color:var(--ink-3)}
-.now{
-  display:flex; align-items:baseline; gap:8px; margin-bottom:14px;
-  padding-bottom:13px; border-bottom:1px solid var(--line);
+.cast > div{background:var(--surface); padding:9px 12px 11px}
+.cast b{
+  display:block; font-size:13.5px; font-weight:600; letter-spacing:-.01em;
 }
-.now b{font-family:"Gowun Batang",Batang,serif; font-size:24px; font-weight:700; line-height:1}
-.now span{font-size:12.5px; color:var(--ink-3)}
-#spark{display:block; width:100%; height:44px; margin-top:4px}
-
-/* ── live night-training panel ───────────────────── */
-.live{margin-top:18px}
-.livebar{display:flex; flex-wrap:wrap; align-items:center; gap:9px 12px; margin-bottom:13px}
-.badge{
-  display:inline-flex; align-items:center; gap:7px; flex:none;
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
-  letter-spacing:.08em; padding:5px 11px; border-radius:2px;
-  border:1px solid var(--line); color:var(--ink-3);
+.cast b.me{color:var(--accent)}
+.cast em{
+  font-style:normal; display:block; margin-top:1px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11.5px; color:var(--ink-3);
 }
-.badge::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor}
-.badge[data-state="live"]{color:var(--ok); border-color:currentColor}
-.badge[data-state="live"]::before{animation:pulse 1.6s ease-in-out infinite}
-.badge[data-state="done"]{color:var(--accent); border-color:currentColor}
-.badge[data-state="lost"]{color:var(--crit); border-color:currentColor}
-@keyframes pulse{50%{opacity:.28}}
-@media (prefers-reduced-motion: reduce){.badge[data-state="live"]::before{animation:none}}
-.runinfo{font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums}
-.legend.series i{width:15px; height:3px; border-radius:2px}
-#nll{display:block; width:100%; height:auto; margin-top:4px; cursor:crosshair}
-.tablewrap{max-height:170px; overflow:auto; margin-top:14px;
-  border:1px solid var(--line); border-radius:2px}
-.tablewrap table{border-collapse:collapse; width:100%;
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
-  font-variant-numeric:tabular-nums}
-.tablewrap th{
-  position:sticky; top:0; background:var(--sunk); color:var(--ink-3);
-  font-weight:500; letter-spacing:.06em; font-size:10.5px;
-  text-align:right; padding:7px 11px; border-bottom:1px solid var(--line);
+.cast s{
+  text-decoration:none; display:block; margin-top:3px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px;
+  font-variant-numeric:tabular-nums;
 }
-.tablewrap th:first-child{text-align:left}
-.tablewrap td{padding:5px 11px; text-align:right; color:var(--ink-2);
-  border-bottom:1px solid var(--line)}
-.tablewrap td:first-child{text-align:left; color:var(--ink)}
-.tablewrap tr:last-child td{border-bottom:0}
-.empty{margin:0; padding:20px 14px; text-align:center; color:var(--ink-3); font-size:13px}
-.empty code{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
-  background:var(--sunk); padding:1px 5px; border-radius:2px}
-
-/* ── footer ───────────────────────────────────────────── */
-.note{
-  margin-top:26px; padding-top:18px; border-top:1px solid var(--line);
-  font-size:13px; color:var(--ink-3); max-width:78ch;
-}
-.note p{margin:0 0 8px}
-.note b{color:var(--ink-2); font-weight:600}
-.note code{
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
-  background:var(--sunk); padding:1px 5px; border-radius:2px; color:var(--ink-2);
-}
+.note{margin:16px 0 0; font-size:12.5px; color:var(--ink-3)}
 </style>
 
 <div class="wrap">
-  <p class="eyebrow">S1 · 월드 + 화면 · LLM 없음</p>
-  <h1>npc-sim</h1>
-  <p class="dek">약초를 캐서 파는 <b>미나</b>가 12×12 마을을 걷는다. 니즈 다섯 개가 매 스텝
-    자라고, 목표에 맞는 장소에 서 있는 동안에만 줄어든다. <b>정책</b>을 랜덤 행동으로 바꿔
-    보면 아래 숫자가 무너진다 — 그 격차가 S1 의 합격 기준이다.</p>
-
-  <dl class="gauge">
-    <div class="lead"><dt>니즈충족률</dt><dd id="g-score">—<small id="g-score-sub">1 − 평균 최악니즈</small></dd></div>
-    <div><dt>날짜</dt><dd id="g-clock">—<small id="g-clock-sub">30일 중</small></dd></div>
-    <div><dt>최악 니즈</dt><dd id="g-worst">—<small id="g-worst-sub">지금 가장 급한 것</small></dd></div>
-    <div><dt>경과 스텝</dt><dd id="g-steps">—<small>1일 = 144스텝</small></dd></div>
-  </dl>
-
-  <div class="bar">
-    <button class="btn primary" id="play" aria-pressed="false">
-      <span class="glyph play" id="play-glyph" aria-hidden="true"></span><span id="play-text">재생</span>
-    </button>
-    <button class="btn" id="reset"><span class="glyph reset" aria-hidden="true"></span>처음으로</button>
+  <div class="top">
+    <span class="badge" id="badge" data-state="off">연결 안 됨</span>
+    <span class="clock" id="clock">—</span>
     <span class="spacer"></span>
-    <span class="lbl">정책</span>
-    <span class="seg words" id="policy" role="group" aria-label="행동 선택 정책">
-      <button data-v="random" aria-pressed="false">랜덤 행동</button>
-      <button data-v="utility" aria-pressed="true">유틸리티</button>
-    </span>
-    <span class="lbl">속도</span>
-    <span class="seg" id="speed" role="group" aria-label="재생 속도">
-      <button data-v="1" aria-pressed="true">×1</button>
-      <button data-v="6" aria-pressed="false">×6</button>
-      <button data-v="24" aria-pressed="false">×24</button>
-    </span>
-    <span class="lbl">시드</span>
-    <input class="seed" id="seed" type="number" min="0" max="99999" step="1" value="7" aria-label="난수 시드">
+    <span class="who" id="who"></span>
   </div>
 
-  <div class="panel">
-    <div class="card">
-      <h2>마을 <em id="map-sub">—</em></h2>
-      <canvas id="map" width="720" height="720" role="img"
-              aria-label="12×12 격자 마을 지도와 미나의 현재 위치"></canvas>
-      <div class="legend" id="legend"></div>
-    </div>
-
-    <div>
-      <div class="card" style="margin-bottom:18px">
-        <h2>지금 <em id="tick-sub">—</em></h2>
-        <div class="now"><b id="now-goal">—</b><span id="now-why">—</span></div>
-        <div class="meters" id="meters"></div>
-      </div>
-
-      <div class="card" style="margin-bottom:18px">
-        <h2>일별 니즈충족률 <em id="spark-sub">—</em></h2>
-        <canvas id="spark" width="560" height="132" role="img"
-                aria-label="일별 니즈충족률 추이"></canvas>
-      </div>
-
-      <div class="card">
-        <h2>목표 선택 <em>두 정책 공통</em></h2>
-        <div class="tally" id="tally"></div>
-      </div>
-    </div>
-  </div>
-
-  <section class="card live">
-    <h2>밤 학습 — 느린 층 <em id="live-sub">연구 PC 에서만 돈다</em></h2>
-    <div class="livebar">
-      <span class="badge" id="badge" data-state="off">기록 없음</span>
-      <span class="runinfo" id="runinfo"></span>
-    </div>
-    <div class="legend series" id="series-legend"></div>
-    <canvas id="nll" width="1120" height="300" role="img"
-            aria-label="일별 프로브 NLL 세 곡선 — 정체성, 사실, 일반능력"></canvas>
-    <div class="tablewrap" id="nll-table-wrap">
-      <p class="empty" id="empty-note">아직 발행된 기록이 없다.</p>
-    </div>
-  </section>
-
-  <div class="note">
-    <p><b>이 페이지는 관전용이다.</b> 위 마을은 당신의 브라우저에서 돌아가고, 아래 곡선은
-      연구 PC 가 발행해 둔 기록을 읽어 그린 것이다. 여기서 학습을 시작하거나 멈출 수는 없다 —
-      제어는 연구 PC 의 로컬 대시보드에만 있다.</p>
-    <p><b>마을은 브라우저 안에서 시뮬레이션된다.</b> 연구 PC 에 붙어 있는 게 아니다 —
-      <code>world.py</code> · <code>npc.py</code> 를 JS 로 이식한 것이고,
-      지도·감쇠율·목표↔장소↔니즈 매핑은 <code>tools/export_world.py</code> 가 파이썬에서
-      뽑아낸 값을 그대로 쓴다. 상수는 표류하지 않지만 <b>난수는 다르다</b> —
-      같은 시드라도 파이썬 run 과 스텝 단위로 일치하지는 않는다.</p>
-    <p><b>목표 선택은 두 정책이 똑같다</b> — 매 틱 가장 급한 니즈를 푸는 목표를 고른다
-      (<code>npc.urgent_goal</code>). 토글이 바꾸는 것은 <b>행동 선택</b>뿐이다: 랜덤 행동은
-      <code>북·남·서·동·대기</code> 5개 중 균등하게, 유틸리티는 목표 방향과 3×3 시야만 보고
-      한 칸을 고른다(<code>policy.py</code>). 그래야 S1 이 재려는 「랜덤 정책 기준선」과 같은
-      비교가 된다. 합격 기준은 두 니즈충족률 분포가 시드 10개에서 겹치지 않는 것이다.</p>
-    <p><b>유틸리티도 지도를 못 본다.</b> obs 25차원에 절대 좌표가 없어서 항법이 반응형이다 —
-      오목한 장애물이면 갇힐 수 있다. 이 지도에는 없다: 목표 8개 × 출발 129칸 1032쌍이 전부
-      도달하고 최악 17스텝이다. 다만 <b>17스텝은 1틱(6스텝)보다 길다</b> — 도착 전에 목표가
-      다시 선택되는 흔들림이 그대로 보인다.</p>
-    <p><b>일하기 · 돌보기 · 모으기 는 어떤 니즈도 줄이지 않는다.</b> 설계된 대조군이다 —
-      갈 곳은 있어서 이동은 배우지만 보상이 희소하다. 랜덤이 낮게 나오는 이유의 일부가 이것이다.</p>
-  </div>
+  <canvas id="map" width="760" height="760" role="img"
+          aria-label="12×12 마을 지도와 다섯 사람의 현재 위치"></canvas>
+  <div class="legend" id="legend"></div>
+  <div class="cast" id="cast"></div>
+  <p class="note" id="note"></p>
 </div>
 
 <script>
@@ -351,155 +125,32 @@ const D = {
  "goals": ["먹기","자기","일하기","대화","피신","배회","돌보기","모으기"],
  "needs": ["배고픔","피로","안전","사회","호기심"],
  "stepsPerTick": 6, "ticksPerDay": 24, "stepsPerDay": 144,
- "saturateDays": {"배고픔":0.5,"피로":1.0,"호기심":1.5,"사회":2.0,"안전":3.0},
- "reliefPerStep": 0.2,
- "goalPlace": {"먹기":"오두막","자기":"오두막","피신":"오두막","돌보기":"오두막",
-               "일하기":"언덕","대화":"대장간","모으기":"광장","배회":"강가"},
- "goalNeed": {"먹기":"배고픔","자기":"피로","피신":"안전","대화":"사회","배회":"호기심"},
- "obsDim": 25, "npcName": "미나", "days": 30
+ "npcName": "미나", "days": 30
 };
 
+/* Relay only. This page does not simulate anything: it plays back frames the research
+   machine publishes while a session runs. The browser-side port of world/npc/policy that
+   used to live here is gone, and with it the risk of the two drifting apart.
+
+   A session's public address arrives in live.json as config.stream; /village next to it
+   carries a rolling window of the last ten seconds. Sixty frames per request rather than
+   one current frame, because at six steps a second a once-a-second poll would show the
+   NPCs teleporting. */
 const N = D.size;
 const BLOCKED = new Set(D.blocked.split(""));
-const NEED_GOAL = Object.fromEntries(Object.entries(D.goalNeed).map(([g,n]) => [n,g]));
 const PLACES = [...new Set(Object.values(D.placeOf))];
 const TERRAIN = {"~":"--t-water","#":"--t-rock",".":"--t-void",
                  "H":"--t-hill","U":"--t-hut","R":"--t-river","Q":"--t-square","B":"--t-forge"};
 
 const passable = (r,c) => r>=0 && r<N && c>=0 && c<N && !BLOCKED.has(D.map[r][c]);
-const placeAt  = (r,c) => passable(r,c) ? (D.placeOf[D.map[r][c]] ?? null) : null;
+const placeAt = (r,c) => passable(r,c) ? (D.placeOf[D.map[r][c]] ?? null) : null;
 
-/* Cells of each place, scanned row then column so the "nearest goal cell" tie-break
-   matches npc.toward() on the Python side. */
-const PLACE_CELLS = Object.fromEntries(PLACES.map(p => [p, []]));
-for (let r=0;r<N;r++) for (let c=0;c<N;c++){
-  const p = placeAt(r,c);
-  if (p) PLACE_CELLS[p].push([r,c]);
-}
-
-/* npc.py: unit direction and squashed Manhattan distance to the nearest goal cell. */
-const DIST_SCALE = 4;
-function toward(pos, goal){
-  const [r,c] = pos;
-  let best = null, bd = Infinity;
-  for (const [tr,tc] of PLACE_CELLS[D.goalPlace[goal]]){
-    const d = Math.abs(tr-r) + Math.abs(tc-c);
-    if (d < bd){ bd = d; best = [tr,tc]; }
-  }
-  const dr = best[0]-r, dc = best[1]-c, d = Math.abs(dr) + Math.abs(dc);
-  const sc = Math.max(Math.abs(dr), Math.abs(dc)) || 1;
-  return [dr/sc, dc/sc, d/(d + DIST_SCALE)];
-}
-
-/* policy.py: 5 actions. The utility baseline reads obs only -- goal direction plus a 3x3
-   window, no map -- so it cannot route around a concave obstacle. This map has none
-   (python policy.py walks all 1032 start/goal pairs). */
-const MOVES = [[-1,0],[1,0],[0,-1],[0,1]];
-const ACTIONS = [...MOVES, [0,0]];
-const STAY = MOVES.length;
-const PATCH_IX = MOVES.map(([dr,dc]) => (dr+1)*3 + (dc+1));
-
-function patchOf(r, c){
-  const out = [];
-  for (const dr of [-1,0,1]) for (const dc of [-1,0,1]) out.push(passable(r+dr, c+dc) ? 1 : 0);
-  return out;
-}
-
-function actUtility(s, goal){
-  const [dr, dc, dist] = toward(s.pos, goal);
-  if (dist === 0) return STAY;
-  const patch = patchOf(s.pos[0], s.pos[1]);
-  const want = [];
-  if (dr) want.push([Math.abs(dr), dr < 0 ? 0 : 1]);
-  if (dc) want.push([Math.abs(dc), dc < 0 ? 2 : 3]);
-  want.sort((a,b) => (b[0]-a[0]) || (b[1]-a[1]));   /* matches Python's reverse tuple sort */
-  for (const [,a] of want) if (patch[PATCH_IX[a]] > 0.5) return a;
-  const open = [0,1,2,3].filter(a => patch[PATCH_IX[a]] > 0.5);
-  return open.length ? open[Math.floor(s.rnd() * open.length)] : STAY;
-}
-
-const FREE = [];
-for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (passable(r,c)) FREE.push([r,c]);
-
-function mulberry32(seed){
-  let a = seed >>> 0;
-  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a;
-    t = Math.imul(t ^ t>>>15, t | 1); t ^= t + Math.imul(t ^ t>>>7, t | 61);
-    return ((t ^ t>>>14) >>> 0) / 4294967296; };
-}
-
-function makeRun(seed, policy){
-  const rnd = mulberry32(seed * 2654435761 + 12345);
-  const start = FREE[Math.floor(rnd() * FREE.length)].slice();
-  const s = {
-    seed, policy, rnd, pos:start, prev:start.slice(), t:0, goal:null, done:false,
-    need:{}, needSum:{}, worstSum:0, dayWorstSum:0, daily:[], action:4,
-    tally:Object.fromEntries(D.goals.map(g => [g,0])), trail:[],
-  };
-  /* seeds differ in where 미나 wakes up and how rested she is */
-  for (const n of D.needs){ s.need[n] = rnd() * 0.3; s.needSum[n] = 0; }
-  s.goal = chooseGoal(s);
-  s.tally[s.goal]++;
-  return s;
-}
-
-/* npc.urgent_goal(): the goal that relieves the worst deficit. Both arms use it, so the
-   only thing the toggle changes is action selection -- DESIGN's 「랜덤 정책 기준선」. */
-function chooseGoal(s){
-  let worst = D.needs[0];
-  for (const n of D.needs) if (s.need[n] > s.need[worst]) worst = n;
-  return NEED_GOAL[worst];
-}
-
-function stepOnce(s){
-  if (s.done) return;
-  if (s.t > 0 && s.t % D.stepsPerTick === 0){ s.goal = chooseGoal(s); s.tally[s.goal]++; }
-
-  const [r,c] = s.pos;
-  s.prev = [r,c];
-  s.action = s.policy === "random"
-    ? Math.floor(s.rnd() * ACTIONS.length)
-    : actUtility(s, s.goal);
-  const [mr,mc] = ACTIONS[s.action];
-  if (passable(r+mr, c+mc)) s.pos = [r+mr, c+mc];      /* npc.move: a blocked step is burned */
-  s.trail.push(s.pos.slice());
-  if (s.trail.length > 26) s.trail.shift();
-
-  for (const n of D.needs)
-    s.need[n] = Math.min(1, s.need[n] + 1 / (D.saturateDays[n] * D.stepsPerDay));
-  const relieved = D.goalNeed[s.goal];
-  if (relieved && placeAt(s.pos[0], s.pos[1]) === D.goalPlace[s.goal])
-    s.need[relieved] = Math.max(0, s.need[relieved] - D.reliefPerStep);
-
-  let worst = 0;
-  for (const n of D.needs){ s.needSum[n] += s.need[n]; if (s.need[n] > worst) worst = s.need[n]; }
-  s.worstSum += worst; s.dayWorstSum += worst;
-
-  s.t++;
-  if (s.t % D.stepsPerDay === 0){
-    s.daily.push(1 - s.dayWorstSum / D.stepsPerDay);
-    s.dayWorstSum = 0;
-  }
-  if (s.t >= D.days * D.stepsPerDay) s.done = true;
-}
-
-const clock = s => ({
-  day: Math.floor(s.t / D.stepsPerDay) + 1,
-  tick: Math.floor(s.t / D.stepsPerTick) % D.ticksPerDay,
-  step: s.t % D.stepsPerTick,
-});
-const score = s => s.t ? 1 - s.worstSum / s.t : null;
-const worstNeed = s => D.needs.reduce((a,b) => s.need[a] >= s.need[b] ? a : b);
-
-/* ── DOM ─────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* Re-read every frame so a theme switch is picked up, but once -- not once per cell.
-   getComputedStyle inside the 12x12 loop cost 144 reflow-reads per canvas per frame. */
-const TOKENS = ["--paper","--line","--accent","--accent-soft","--ok","--warn","--crit",
-                "--t-water","--t-rock","--t-void","--t-hill","--t-hut","--t-river",
-                "--t-square","--t-forge"];
+const TOKENS = ["--paper","--line","--accent","--ink","--ink-2","--ink-3","--crit","--warn",
+                "--ok","--surface","--t-water","--t-rock","--t-void","--t-hill","--t-hut",
+                "--t-river","--t-square","--t-forge"];
 let PAL = {};
 function readPalette(){
   const cs = getComputedStyle(document.documentElement);
@@ -507,458 +158,232 @@ function readPalette(){
 }
 const css = v => PAL[v] || "";
 
-let state = makeRun(7, "utility");
-let playing = false, mult = 1, acc = 0, last = 0;
-const BASE = D.stepsPerTick;                     /* ×1 = one tick per second */
-
 $("legend").innerHTML = [["--t-hill","언덕"],["--t-hut","오두막"],["--t-river","강가"],
-  ["--t-square","광장"],["--t-forge","대장간"],["--t-water","강 (통행 불가)"],
-  ["--t-rock","바위 (통행 불가)"]]
+  ["--t-square","광장"],["--t-forge","대장간"],["--t-water","강"],["--t-rock","바위"]]
   .map(([v,n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join("");
 
-$("meters").innerHTML = D.needs.map(n => `
-  <div class="meter">
-    <span class="name">${n}</span>
-    <span class="track"><i class="fill" data-need="${n}"></i><i class="avg" data-avg="${n}"></i></span>
-    <span class="val" data-val="${n}">0.00</span>
-  </div>`).join("");
+/* ── playback ─────────────────────────────────────────
+   Held deliberately behind the newest frame. Playing the newest one the instant it lands
+   would stutter on every late request; running ~2s back turns network jitter into buffer
+   the viewer never sees. Falling more than a window behind jumps forward rather than
+   crawling, because this is a live relay and old frames are not worth catching up on. */
+const LAG = 12;            // steps of deliberate delay: 2 s at 6 steps/s
+const JUMP = 40;           // further behind than this and we skip forward instead
 
-$("tally").innerHTML = D.goals.map(g => {
-  const sparse = !D.goalNeed[g];
-  return `<div class="trow">
-    <span class="g${sparse ? " dim" : ""}">${g}</span>
-    <span class="b"><i data-tally="${g}"${sparse ? ' class="sparse"' : ""}></i></span>
-    <span class="n" data-tallyn="${g}">0</span>
-  </div>`;
-}).join("");
+const PLAY = {frames: [], head: null, rate: 6, cast: [], now: null,
+              starving: false, lastDraw: 0};
 
-function needColor(v){ return v < 0.4 ? css("--ok") : v < 0.7 ? css("--warn") : css("--crit"); }
+function ingest(payload){
+  PLAY.rate = payload.rate || 6;
+  PLAY.cast = payload.cast || [];
+  PLAY.now = payload.now || null;
+  const known = PLAY.frames.length ? PLAY.frames[PLAY.frames.length - 1].t : -1;
+  for (const f of payload.window || []){
+    if (f.t > known) PLAY.frames.push(f);
+  }
+  while (PLAY.frames.length > 400) PLAY.frames.shift();
+  if (!PLAY.frames.length) return;
+  const newest = PLAY.frames[PLAY.frames.length - 1].t;
+  if (PLAY.head === null || newest - PLAY.head > JUMP) PLAY.head = Math.max(0, newest - LAG);
+}
 
-function drawMap(s, frac){
+function frameAt(t){
+  const f = PLAY.frames;
+  if (!f.length) return null;
+  if (t <= f[0].t) return {a: f[0], b: f[0], k: 0};
+  for (let i = f.length - 1; i >= 0; i--){
+    if (f[i].t <= t){
+      const a = f[i], b = f[Math.min(i + 1, f.length - 1)];
+      const span = b.t - a.t;
+      return {a, b, k: span > 0 ? Math.min(1, (t - a.t) / span) : 0};
+    }
+  }
+  return {a: f[0], b: f[0], k: 0};
+}
+
+/* ── drawing ──────────────────────────────────────────── */
+function draw(){
+  readPalette();
   const cv = $("map"), dpr = Math.min(devicePixelRatio || 1, 2);
-  const box = cv.clientWidth || 720;
+  const box = cv.clientWidth || 760;
   if (cv.width !== Math.round(box * dpr)){
-    cv.width = Math.round(box * dpr); cv.height = Math.round(box * dpr);
+    cv.width = Math.round(box * dpr);
+    cv.height = Math.round(box * dpr);
   }
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const S = box / N;
   g.clearRect(0, 0, box, box);
 
-  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++){
     g.fillStyle = css(TERRAIN[D.map[r][c]] || "--t-void");
     g.fillRect(c*S, r*S, S, S);
   }
-  g.strokeStyle = css("--line"); g.globalAlpha = .5; g.lineWidth = 1;
-  for (let i=1;i<N;i++){
+  g.strokeStyle = css("--line"); g.globalAlpha = .45; g.lineWidth = 1;
+  for (let i = 1; i < N; i++){
     g.beginPath(); g.moveTo(i*S, 0); g.lineTo(i*S, box); g.stroke();
     g.beginPath(); g.moveTo(0, i*S); g.lineTo(box, i*S); g.stroke();
   }
   g.globalAlpha = 1;
 
-  /* ring the cells the current goal sends her to */
-  const target = D.goalPlace[s.goal];
-  g.strokeStyle = css("--accent"); g.lineWidth = 2;
-  for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (placeAt(r,c) === target)
-    g.strokeRect(c*S + 2, r*S + 2, S - 4, S - 4);
-
-  /* place names, once per place, on its first cell */
-  g.font = `500 ${Math.max(9, S * 0.27)}px "IBM Plex Sans KR", sans-serif`;
+  g.font = `500 ${Math.max(9, S * 0.24)}px "IBM Plex Sans KR", sans-serif`;
   g.textAlign = "center"; g.textBaseline = "middle";
   const drawn = new Set();
-  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
-    const p = placeAt(r,c);
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++){
+    const p = placeAt(r, c);
     if (!p || drawn.has(p)) continue;
     drawn.add(p);
-    g.fillStyle = "rgba(255,255,255,.92)";
-    g.fillText(p, c*S + S/2, r*S + S/2 + S*0.02);
+    g.fillStyle = "rgba(255,255,255,.9)";
+    g.fillText(p, c*S + S/2, r*S + S/2);
   }
 
-  /* trail */
-  s.trail.forEach((p, i) => {
-    g.globalAlpha = (i + 1) / s.trail.length * 0.3;
-    g.fillStyle = css("--accent");
-    g.beginPath(); g.arc(p[1]*S + S/2, p[0]*S + S/2, S*0.11, 0, 7); g.fill();
+  const at = frameAt(PLAY.head === null ? -1 : PLAY.head);
+  if (!at) return;
+
+  /* trail: where each of them has been over the last two seconds */
+  const tail = PLAY.frames.filter(f => f.t <= at.a.t && f.t > at.a.t - 12);
+  g.fillStyle = css("--accent");
+  tail.forEach((f, i) => {
+    g.globalAlpha = (i + 1) / tail.length * 0.22;
+    for (const [r, c] of f.pos){
+      g.beginPath(); g.arc(c*S + S/2, r*S + S/2, S*0.1, 0, 7); g.fill();
+    }
   });
   g.globalAlpha = 1;
 
-  /* 미나 — interpolated between the last two cells so ×1 reads as walking */
-  const e = reduced ? 1 : 1 - Math.pow(1 - Math.min(frac, 1), 3);
-  const y = (s.prev[0] + (s.pos[0] - s.prev[0]) * e) * S + S/2;
-  const x = (s.prev[1] + (s.pos[1] - s.prev[1]) * e) * S + S/2;
-  g.fillStyle = css("--accent");
-  g.beginPath(); g.arc(x, y, S*0.3, 0, 7); g.fill();
-  g.strokeStyle = css("--paper"); g.lineWidth = 2.5;
-  g.beginPath(); g.arc(x, y, S*0.3, 0, 7); g.stroke();
-  g.fillStyle = css("--paper");
-  g.font = `700 ${Math.max(9, S*0.3)}px "Gowun Batang", serif`;
-  g.fillText(D.npcName[0], x, y + S*0.02);
-}
-
-function drawSpark(s){
-  const cv = $("spark"), dpr = Math.min(devicePixelRatio || 1, 2);
-  const w = cv.clientWidth || 280, h = 44;
-  if (cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
-  const g = cv.getContext("2d");
-  g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.clearRect(0, 0, w, h);
-
-  g.strokeStyle = css("--line"); g.lineWidth = 1;
-  for (const v of [0.25, 0.5, 0.75]){
-    g.beginPath(); g.moveTo(0, h - v*h); g.lineTo(w, h - v*h); g.stroke();
-  }
-  if (!s.daily.length) return;
-
-  const px = i => D.days > 1 ? i / (D.days - 1) * w : 0;
-  const py = v => h - Math.max(0, Math.min(1, v)) * h;
-  g.beginPath(); g.moveTo(px(0), h);
-  s.daily.forEach((v,i) => g.lineTo(px(i), py(v)));
-  g.lineTo(px(s.daily.length - 1), h); g.closePath();
-  g.fillStyle = css("--accent-soft"); g.fill();
-
-  g.beginPath();
-  s.daily.forEach((v,i) => i ? g.lineTo(px(i), py(v)) : g.moveTo(px(i), py(v)));
-  g.strokeStyle = css("--accent"); g.lineWidth = 1.75; g.stroke();
-
-  const lastI = s.daily.length - 1;
-  g.fillStyle = css("--accent");
-  g.beginPath(); g.arc(px(lastI), py(s.daily[lastI]), 2.75, 0, 7); g.fill();
-}
-
-function paint(frac){
-  readPalette();
-  const s = state, c = clock(s), sc = score(s);
-  $("g-score").firstChild.nodeValue = sc === null ? "—" : sc.toFixed(3);
-  $("g-clock").firstChild.nodeValue = `${Math.min(c.day, D.days)}일`;
-  $("g-clock-sub").textContent = s.done ? "30일 완료" : `${c.tick}시 · 30일 중`;
-  const wn = worstNeed(s);
-  $("g-worst").firstChild.nodeValue = s.need[wn].toFixed(2);
-  $("g-worst-sub").textContent = wn;
-  $("g-steps").firstChild.nodeValue = s.t.toLocaleString();
-
-  $("map-sub").textContent = `${s.pos[0]},${s.pos[1]} → ${D.goalPlace[s.goal]}`;
-  $("tick-sub").textContent = `${c.day}일 ${String(c.tick).padStart(2,"0")}시 ${c.step}/6`;
-  $("now-goal").textContent = s.goal;
-  const rel = D.goalNeed[s.goal];
-  $("now-why").textContent = rel
-    ? `${D.goalPlace[s.goal]}에서 ${rel} 완화`
-    : `${D.goalPlace[s.goal]}으로 — 니즈 완화 없음`;
-  $("spark-sub").textContent = s.daily.length ? `${s.daily.length}일` : "첫날 진행 중";
-
-  for (const n of D.needs){
-    const v = s.need[n];
-    const fill = document.querySelector(`[data-need="${n}"]`);
-    fill.style.width = (v * 100).toFixed(1) + "%";
-    fill.style.background = needColor(v);
-    document.querySelector(`[data-val="${n}"]`).textContent = v.toFixed(2);
-    const avg = s.t ? s.needSum[n] / s.t : 0;
-    document.querySelector(`[data-avg="${n}"]`).style.left = (avg * 100).toFixed(1) + "%";
-  }
-
-  const top = Math.max(1, ...Object.values(s.tally));
-  for (const g of D.goals){
-    document.querySelector(`[data-tally="${g}"]`).style.width =
-      (s.tally[g] / top * 100).toFixed(1) + "%";
-    document.querySelector(`[data-tallyn="${g}"]`).textContent = s.tally[g];
-  }
-
-  drawMap(s, frac);
-  drawSpark(s);
-}
-
-function setPlaying(on){
-  playing = on && !state.done;
-  $("play").setAttribute("aria-pressed", String(playing));
-  $("play-glyph").className = "glyph " + (playing ? "pause" : "play");
-  $("play-text").textContent = playing ? "일시정지" : (state.done ? "완료" : "재생");
-  if (playing) last = performance.now();
-}
-
-function restart(){
-  const seed = Math.max(0, Math.min(99999, parseInt($("seed").value, 10) || 0));
-  $("seed").value = seed;
-  const pol = document.querySelector('#policy [aria-pressed="true"]').dataset.v;
-  state = makeRun(seed, pol);
-  acc = 0;
-  setPlaying(false);
-  paint(1);
-}
-
-$("play").addEventListener("click", () => {
-  if (state.done) restart();
-  setPlaying(!playing);
-});
-$("reset").addEventListener("click", restart);
-$("seed").addEventListener("change", restart);
-
-for (const [id, fn] of [["policy", restart], ["speed", null]]){
-  $(id).addEventListener("click", ev => {
-    const b = ev.target.closest("button");
-    if (!b) return;
-    for (const o of $(id).children) o.setAttribute("aria-pressed", String(o === b));
-    if (fn) fn(); else mult = Number(b.dataset.v);
+  /* Group by cell before drawing. Cells are shareable and everyone heading to the same
+     place is the normal case, so drawing one marker per person hides all but the last one
+     -- and two people standing together is exactly what this relay exists to show. */
+  const ease = reduced ? 1 : at.k;
+  const spots = new Map();
+  at.a.pos.forEach((pa, i) => {
+    const pb = at.b.pos[i] || pa;
+    const y = pa[0] + (pb[0] - pa[0]) * ease;
+    const x = pa[1] + (pb[1] - pa[1]) * ease;
+    const key = `${Math.round(y)},${Math.round(x)}`;
+    if (!spots.has(key)) spots.set(key, {x, y, who: [], player: false});
+    const spot = spots.get(key);
+    spot.who.push(i);
+    spot.player = spot.player || !!(PLAY.cast[i] || {}).player;
   });
-}
-
-function frame(ts){
-  if (playing){
-    acc += (ts - last) / 1000 * BASE * mult;
-    last = ts;
-    let budget = 4000;
-    while (acc >= 1 && !state.done && budget--){ stepOnce(state); acc -= 1; }
-    if (state.done){ acc = 0; setPlaying(false); }
+  for (const spot of spots.values()){
+    const px = spot.x * S + S/2, py = spot.y * S + S/2;
+    const mark = spot.who.length === 1
+      ? ((PLAY.cast[spot.who[0]] || {name: "?"}).name)[0]
+      : String(spot.who.length);
+    g.fillStyle = spot.player ? css("--crit") : css("--accent");
+    g.beginPath(); g.arc(px, py, S*0.31, 0, 7); g.fill();
+    g.strokeStyle = css("--paper"); g.lineWidth = 2.5;
+    g.beginPath(); g.arc(px, py, S*0.31, 0, 7); g.stroke();
+    g.fillStyle = css("--paper");
+    g.font = `600 ${Math.max(9, S*0.29)}px "IBM Plex Sans KR", sans-serif`;
+    g.fillText(mark, px, py + S*0.01);
   }
-  paint(playing ? acc : 1);
-  requestAnimationFrame(frame);
 }
 
-/* ── night-training record ────────────────────────────────
-   The slow layer (QLoRA on a 5090) cannot run in a browser, so this panel only draws
-   numbers the research machine produced. Two sources, and the page picks by URL:
-
-     no ?src=      the published record, live.json next to this page. Fetched once --
-                   a static file only changes when the site is redeployed, so polling
-                   it would be pure noise, and a visitor is never asked for an address.
-                   Works with the research machine switched off, which is the point.
-     ?src=<url>    a live publisher (live.py's /state). Polled. This is how the local
-                   dashboard embeds this page while a run is going; it is not something
-                   a visitor is expected to set.
-
-   Polling, when it happens, is not SSE and not a fallback: a streaming GET does not
-   survive a cloudflared tunnel (measured -- headers and finite bodies arrive, a
-   streaming body never does, cloudflare/cloudflared#1449), and one data point per
-   night makes a 2s poll ~30x faster than the numbers move anyway. */
-const SERIES = [
-  {key:"identity", name:"정체성",  tok:"--s1"},
-  {key:"fact",     name:"사실",    tok:"--s2"},
-  {key:"general",  name:"일반능력", tok:"--s3"},
-];
-TOKENS.push("--s1", "--s2", "--s3", "--ink", "--ink-2", "--ink-3", "--surface");
-
-const PARAMS = new URLSearchParams(location.search);
-if (PARAMS.has("embed")) document.documentElement.dataset.embed = "1";
-const FIXED_SRC = PARAMS.get("src") || "";
-const POLL_RUNNING = 2000, POLL_FINISHED = 15000;
-const LIVE = {timer:null, cfg:null, rows:[], done:false, state:"off", hover:null, misses:0,
-              source: FIXED_SRC || "live.json",
-              /* ?src= means the local dashboard aimed us at a publisher. Otherwise we start
-                 on the published record and get promoted to polling only if that record
-                 names a live address -- which it does while a session is running. */
-              polling: !!FIXED_SRC};
-
-$("series-legend").innerHTML = SERIES
-  .map(x => `<span><i style="background:var(${x.tok})"></i>${x.name} NLL</span>`).join("");
+function renderCast(){
+  const now = PLAY.now;
+  if (!now || !now.agents){ $("cast").innerHTML = ""; return; }
+  const band = v => v < 0.4 ? "--ok" : v < 0.7 ? "--warn" : "--crit";
+  $("cast").innerHTML = now.agents.map((a, i) => {
+    const who = PLAY.cast[i] || {};
+    return `<div><b class="${who.player ? "me" : ""}">${a.name}`
+      + (who.job ? ` <em>${who.job}</em>` : "")
+      + `</b><em>${a.goal} → ${a.place}</em>`
+      + `<s style="color:var(${band(a.worst)})">최악 ${a.worst.toFixed(2)}</s></div>`;
+  }).join("");
+}
 
 function setBadge(state, text){
-  LIVE.state = state;
   $("badge").dataset.state = state;
   $("badge").textContent = text;
 }
 
-function applySnapshot(snap){
-  LIVE.cfg = snap.config || null;
-  LIVE.rows = snap.days || [];
-  LIVE.done = !!snap.done;
-  if (LIVE.cfg){
-    /* only what the snapshot carries -- an archived curve knows its run and model but
-       not the step count or the flags, and inventing them would be a confident lie */
-    const parts = [LIVE.cfg.run, LIVE.cfg.model];
-    if (LIVE.cfg.steps) parts.push(`${LIVE.cfg.steps}스텝/밤`);
-    const tech = Object.entries(LIVE.cfg.tech || {})
-      .map(([k, v]) => `${k}=${v ? 1 : 0}`).join(" ");
-    if (tech) parts.push(tech);
-    $("runinfo").textContent = parts.filter(Boolean).join(" · ");
-  }
-  /* A published record can carry the address of the run that produced it. Follow it
-     once; publishing strips the field when the session ends, so a stripped record simply
-     stays static. */
-  const stream = LIVE.cfg && LIVE.cfg.stream;
-  if (!FIXED_SRC && !LIVE.polling && stream){
-    LIVE.source = stream;
-    LIVE.polling = true;
-    LIVE.misses = 0;
-  }
-
-  const total = LIVE.cfg ? LIVE.cfg.days : 30;
-  const last = LIVE.rows.length ? LIVE.rows[LIVE.rows.length - 1].day : null;
-  if (LIVE.polling){
-    setBadge(LIVE.done ? "done" : "live",
-             LIVE.done ? `${total}일 완료`
-                       : (last === null ? "대기 중" : `${last}일 / ${total}`));
+function renderStatus(){
+  const at = frameAt(PLAY.head === null ? -1 : PLAY.head);
+  if (at){
+    const f = at.a;
+    $("clock").textContent =
+      `${f.day}일 ${String(f.tick).padStart(2,"0")}시 ${f.step}/${D.stepsPerTick}`;
+    $("who").textContent = `${PLAY.cast.length}명 · ${PLAY.rate} 스텝/초`
+      + (PLAY.starving ? " · 버퍼 대기" : "");
   } else {
-    setBadge(LIVE.rows.length ? "done" : "off",
-             last === null ? "기록 없음"
-                           : (LIVE.done ? `${total}일 완료 기록` : `${last}일까지 기록`));
+    $("clock").textContent = "—";
+    $("who").textContent = "";
   }
-  $("live-sub").textContent =
-    (LIVE.polling ? "실시간" : "발행된 기록")
-    + (LIVE.rows.length ? ` · ${LIVE.rows.length}개 지점` : " · 없음");
-  drawNll();
-  renderTable();
 }
 
-async function fetchSnapshot(){
-  const sep = LIVE.source.includes("?") ? "&" : "?";
-  const res = await fetch(LIVE.source + sep + "t=" + Date.now(), {cache:"no-store"});
+/* ── the feed ─────────────────────────────────────────── */
+const PARAMS = new URLSearchParams(location.search);
+const FIXED = PARAMS.get("src") || "";
+const FEED = {base: FIXED, misses: 0, timer: null};
+
+function baseOf(url){ return url.replace(/\/(state|village)\/?$/, ""); }
+
+async function findSession(){
+  const res = await fetch("live.json?t=" + Date.now(), {cache: "no-store"});
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  applySnapshot(await res.json());
+  const snap = await res.json();
+  return (snap.config || {}).stream || "";
+}
+
+async function pollOnce(){
+  const res = await fetch(`${baseOf(FEED.base)}/village?t=${Date.now()}`, {cache: "no-store"});
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const payload = await res.json();
+  if (payload.error || !(payload.window || []).length) throw new Error(payload.error || "empty");
+  ingest(payload);
+  renderCast();
+  setBadge("live", "중계 중");
 }
 
 async function tick(){
-  /* a hidden tab still counts as a visitor hitting the machine that publishes */
-  const wasPolling = LIVE.polling;
   if (!document.hidden){
     try {
-      await fetchSnapshot();
-      LIVE.misses = 0;
-    } catch (e) {
-      if (LIVE.polling){
-        /* The publisher going away IS how a stopped session reads from here: the tunnel
-           dies with it, so a run in progress shows 끊김 within seconds rather than waiting
-           for a redeploy. A run that already reported done is a different story -- the
-           publisher is *supposed* to be gone, so settle on the finished badge and stop
-           poking a dead address forever. */
-        if (++LIVE.misses >= 2){
-          if (LIVE.done) LIVE.polling = false;
-          else setBadge("lost", "끊김 — 세션이 끝났다");
-        }
+      if (!FEED.base) FEED.base = await findSession();
+      if (!FEED.base){
+        setBadge("off", "지금 도는 세션이 없다");
+        $("note").textContent = "연구 PC 에서 세션을 켜면 여기에 마을이 중계된다.";
       } else {
-        setBadge("off", "발행된 기록 없음");
-        $("live-sub").textContent = "발행된 기록 · 없음";
+        await pollOnce();
+        FEED.misses = 0;
+        $("note").textContent = "";
+      }
+    } catch (err) {
+      if (++FEED.misses >= 2){
+        setBadge(PLAY.frames.length ? "off" : "wait",
+                 PLAY.frames.length ? "중계 끊김" : "세션 대기 중");
+        $("note").textContent = PLAY.frames.length
+          ? "세션이 끝났거나 연구 PC 가 꺼졌다. 마지막으로 받은 장면에 멈춰 있다."
+          : "아직 받은 장면이 없다.";
+        if (!FIXED) FEED.base = "";      /* re-read live.json: the address changes per session */
       }
     }
   }
-  if (LIVE.polling){
-    clearTimeout(LIVE.timer);
-    LIVE.timer = setTimeout(tick, LIVE.done ? POLL_FINISHED : POLL_RUNNING);
-  }
-  if (!wasPolling && LIVE.polling) tick();      /* just got promoted -- go straight away */
+  clearTimeout(FEED.timer);
+  FEED.timer = setTimeout(tick, 1000);
 }
 
-addEventListener("visibilitychange", () => {
-  if (!document.hidden && LIVE.polling) tick();
-});
+addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+addEventListener("resize", draw);
 
-const fmt = v => v == null ? "—" : Number(v).toFixed(3);
-
-function renderTable(){
-  if (!LIVE.rows.length) return;
-  $("nll-table-wrap").innerHTML =
-    "<table><thead><tr><th>일</th><th>LOSS</th>" +
-    SERIES.map(x => `<th>${x.name}</th>`).join("") + "</tr></thead><tbody>" +
-    LIVE.rows.slice().reverse().map(r =>
-      `<tr><td>${r.day}</td><td>${fmt(r.loss)}</td>` +
-      SERIES.map(x => `<td>${fmt(r[x.key])}</td>`).join("") + "</tr>").join("") +
-    "</tbody></table>";
+let last = 0;
+function frame(ts){
+  const dt = last ? (ts - last) / 1000 : 0;
+  last = ts;
+  if (PLAY.head !== null && PLAY.frames.length){
+    const newest = PLAY.frames[PLAY.frames.length - 1].t;
+    PLAY.head += dt * PLAY.rate;
+    PLAY.starving = PLAY.head > newest;
+    if (PLAY.starving) PLAY.head = newest;
+  }
+  draw();
+  renderStatus();
+  requestAnimationFrame(frame);
 }
 
-const NLL_PAD = {t:14, r:80, b:30, l:46};
-
-function drawNll(){
-  readPalette();
-  const cv = $("nll"), dpr = Math.min(devicePixelRatio || 1, 2);
-  const w = cv.clientWidth || 1120, h = 300;
-  if (cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
-  const g = cv.getContext("2d");
-  g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.clearRect(0, 0, w, h);
-
-  const P = NLL_PAD;
-  const days = LIVE.cfg ? LIVE.cfg.days : 30;
-  const vals = LIVE.rows.flatMap(r => SERIES.map(x => r[x.key]).filter(v => v != null));
-  const lo = vals.length ? Math.floor(Math.min(...vals) * 2) / 2 - 0.5 : 2;
-  const hi = vals.length ? Math.ceil(Math.max(...vals) * 2) / 2 + 0.5 : 7;
-  const px = d => P.l + d / days * (w - P.l - P.r);
-  const py = v => P.t + (1 - (v - lo) / (hi - lo)) * (h - P.t - P.b);
-
-  /* recessive grid; every label wears an ink token, never a series colour */
-  g.font = '400 11px "IBM Plex Mono", ui-monospace, monospace';
-  g.strokeStyle = css("--line"); g.lineWidth = 1;
-  g.fillStyle = css("--ink-3"); g.textAlign = "right"; g.textBaseline = "middle";
-  const step = (hi - lo) > 4 ? 1 : 0.5;
-  for (let v = lo; v <= hi + 1e-9; v += step){
-    g.beginPath(); g.moveTo(P.l, py(v)); g.lineTo(w - P.r, py(v)); g.stroke();
-    g.fillText(v.toFixed(1), P.l - 8, py(v));
-  }
-  g.textAlign = "center"; g.textBaseline = "top";
-  for (let d = 0; d <= days; d += days > 15 ? 5 : 2) g.fillText(String(d), px(d), h - P.b + 9);
-  g.textAlign = "left";
-  g.fillText("일", px(days) + 14, h - P.b + 9);
-
-  if (!LIVE.rows.length){
-    g.fillStyle = css("--ink-3"); g.textAlign = "center"; g.textBaseline = "middle";
-    g.font = '400 13px "IBM Plex Sans KR", sans-serif';
-    g.fillText("연구 PC 에 연결되면 여기에 곡선이 그려진다",
-               (P.l + w - P.r) / 2, (P.t + h - P.b) / 2);
-    return;
-  }
-
-  const ends = [];
-  for (const sr of SERIES){
-    const pts = LIVE.rows.filter(r => r[sr.key] != null).map(r => [px(r.day), py(r[sr.key])]);
-    if (!pts.length) continue;
-    g.strokeStyle = css(sr.tok); g.lineWidth = 2; g.lineJoin = "round"; g.lineCap = "round";
-    g.beginPath();
-    pts.forEach(([x,y], i) => i ? g.lineTo(x,y) : g.moveTo(x,y));
-    g.stroke();
-    const [ex, ey] = pts[pts.length - 1];
-    g.fillStyle = css(sr.tok);
-    g.beginPath(); g.arc(ex, ey, 4.5, 0, 7); g.fill();
-    g.strokeStyle = css("--surface"); g.lineWidth = 2;        /* 2px surface ring */
-    g.beginPath(); g.arc(ex, ey, 4.5, 0, 7); g.stroke();
-    ends.push({name:sr.name, y:ey});
-  }
-
-  /* Direct labels are not optional here: on the light surface two of the three
-     series sit under 3:1 contrast, and the palette check pays that back with
-     labels or a table view. This page ships both. */
-  ends.sort((a,b) => a.y - b.y);
-  for (let i = 1; i < ends.length; i++)
-    if (ends[i].y - ends[i-1].y < 15) ends[i].y = ends[i-1].y + 15;
-  g.textAlign = "left"; g.textBaseline = "middle";
-  g.font = '500 12px "IBM Plex Sans KR", sans-serif';
-  g.fillStyle = css("--ink-2");
-  for (const e of ends) g.fillText(e.name, w - P.r + 11, e.y);
-
-  const row = LIVE.hover == null ? null : LIVE.rows[LIVE.hover];
-  if (!row) return;
-  const hx = px(row.day);
-  g.strokeStyle = css("--ink-3"); g.lineWidth = 1; g.globalAlpha = .5;
-  g.beginPath(); g.moveTo(hx, P.t); g.lineTo(hx, h - P.b); g.stroke();
-  g.globalAlpha = 1;
-  const lines = [`${row.day}일  loss ${fmt(row.loss)}`].concat(
-    SERIES.filter(x => row[x.key] != null).map(x => `${x.name} ${fmt(row[x.key])}`));
-  g.font = '400 12px "IBM Plex Mono", ui-monospace, monospace';
-  const bw = Math.max(...lines.map(t => g.measureText(t).width)) + 22;
-  const bh = lines.length * 17 + 13;
-  const bx = Math.min(hx + 12, w - P.r - bw), by = P.t + 6;
-  g.fillStyle = css("--surface"); g.strokeStyle = css("--line"); g.lineWidth = 1;
-  g.beginPath(); g.rect(bx, by, bw, bh); g.fill(); g.stroke();
-  g.textAlign = "left"; g.textBaseline = "top";
-  lines.forEach((t, i) => {
-    g.fillStyle = i ? css("--ink-2") : css("--ink");
-    g.fillText(t, bx + 11, by + 7 + i * 17);
-  });
-}
-
-$("nll").addEventListener("mousemove", ev => {
-  if (!LIVE.rows.length) return;
-  const box = ev.currentTarget.getBoundingClientRect();
-  const days = LIVE.cfg ? LIVE.cfg.days : 30;
-  const day = Math.round((ev.clientX - box.left - NLL_PAD.l)
-                         / (box.width - NLL_PAD.l - NLL_PAD.r) * days);
-  let best = 0;
-  LIVE.rows.forEach((r, i) => {
-    if (Math.abs(r.day - day) < Math.abs(LIVE.rows[best].day - day)) best = i;
-  });
-  if (best !== LIVE.hover){ LIVE.hover = best; drawNll(); }
-});
-$("nll").addEventListener("mouseleave", () => { LIVE.hover = null; drawNll(); });
-addEventListener("resize", drawNll);
-
-drawNll();
+setBadge("wait", "연결 중");
+draw();
 tick();
-
-paint(1);
-requestAnimationFrame(ts => { last = ts; frame(ts); });
+requestAnimationFrame(frame);
 </script>
