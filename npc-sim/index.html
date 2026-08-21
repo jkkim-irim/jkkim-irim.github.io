@@ -737,11 +737,14 @@ TOKENS.push("--s1", "--s2", "--s3", "--ink", "--ink-2", "--ink-3", "--surface");
 
 const PARAMS = new URLSearchParams(location.search);
 if (PARAMS.has("embed")) document.documentElement.dataset.embed = "1";
-const SRC = PARAMS.get("src") || "";
-const LIVE_MODE = !!SRC;
-const SOURCE = SRC || "live.json";
+const FIXED_SRC = PARAMS.get("src") || "";
 const POLL_RUNNING = 2000, POLL_FINISHED = 15000;
-const LIVE = {timer:null, cfg:null, rows:[], done:false, state:"off", hover:null, misses:0};
+const LIVE = {timer:null, cfg:null, rows:[], done:false, state:"off", hover:null, misses:0,
+              source: FIXED_SRC || "live.json",
+              /* ?src= means the local dashboard aimed us at a publisher. Otherwise we start
+                 on the published record and get promoted to polling only if that record
+                 names a live address -- which it does while a session is running. */
+              polling: !!FIXED_SRC};
 
 $("series-legend").innerHTML = SERIES
   .map(x => `<span><i style="background:var(${x.tok})"></i>${x.name} NLL</span>`).join("");
@@ -766,9 +769,19 @@ function applySnapshot(snap){
     if (tech) parts.push(tech);
     $("runinfo").textContent = parts.filter(Boolean).join(" · ");
   }
+  /* A published record can carry the address of the run that produced it. Follow it
+     once; publishing strips the field when the session ends, so a stripped record simply
+     stays static. */
+  const stream = LIVE.cfg && LIVE.cfg.stream;
+  if (!FIXED_SRC && !LIVE.polling && stream){
+    LIVE.source = stream;
+    LIVE.polling = true;
+    LIVE.misses = 0;
+  }
+
   const total = LIVE.cfg ? LIVE.cfg.days : 30;
   const last = LIVE.rows.length ? LIVE.rows[LIVE.rows.length - 1].day : null;
-  if (LIVE_MODE){
+  if (LIVE.polling){
     setBadge(LIVE.done ? "done" : "live",
              LIVE.done ? `${total}일 완료`
                        : (last === null ? "대기 중" : `${last}일 / ${total}`));
@@ -778,43 +791,53 @@ function applySnapshot(snap){
                            : (LIVE.done ? `${total}일 완료 기록` : `${last}일까지 기록`));
   }
   $("live-sub").textContent =
-    (LIVE_MODE ? "실시간" : "발행된 기록")
+    (LIVE.polling ? "실시간" : "발행된 기록")
     + (LIVE.rows.length ? ` · ${LIVE.rows.length}개 지점` : " · 없음");
   drawNll();
   renderTable();
 }
 
 async function fetchSnapshot(){
-  const sep = SOURCE.includes("?") ? "&" : "?";
-  const res = await fetch(SOURCE + sep + "t=" + Date.now(), {cache:"no-store"});
+  const sep = LIVE.source.includes("?") ? "&" : "?";
+  const res = await fetch(LIVE.source + sep + "t=" + Date.now(), {cache:"no-store"});
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   applySnapshot(await res.json());
 }
 
 async function tick(){
-  /* a hidden tab still counts as a visitor hitting the research machine */
+  /* a hidden tab still counts as a visitor hitting the machine that publishes */
+  const wasPolling = LIVE.polling;
   if (!document.hidden){
     try {
       await fetchSnapshot();
       LIVE.misses = 0;
     } catch (e) {
-      if (LIVE_MODE){
-        if (++LIVE.misses >= 2) setBadge("lost", "연결 안 됨 — 재시도 중");
+      if (LIVE.polling){
+        /* The publisher going away IS how a stopped session reads from here: the tunnel
+           dies with it, so a run in progress shows 끊김 within seconds rather than waiting
+           for a redeploy. A run that already reported done is a different story -- the
+           publisher is *supposed* to be gone, so settle on the finished badge and stop
+           poking a dead address forever. */
+        if (++LIVE.misses >= 2){
+          if (LIVE.done) LIVE.polling = false;
+          else setBadge("lost", "끊김 — 세션이 끝났다");
+        }
       } else {
         setBadge("off", "발행된 기록 없음");
         $("live-sub").textContent = "발행된 기록 · 없음";
       }
     }
   }
-  if (LIVE_MODE){
+  if (LIVE.polling){
     clearTimeout(LIVE.timer);
     LIVE.timer = setTimeout(tick, LIVE.done ? POLL_FINISHED : POLL_RUNNING);
   }
+  if (!wasPolling && LIVE.polling) tick();      /* just got promoted -- go straight away */
 }
 
-if (LIVE_MODE){
-  addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
-}
+addEventListener("visibilitychange", () => {
+  if (!document.hidden && LIVE.polling) tick();
+});
 
 const fmt = v => v == null ? "—" : Number(v).toFixed(3);
 
