@@ -50,6 +50,15 @@ body{
 }
 .wrap{max-width:1180px; margin:0 auto; padding:clamp(20px,4vw,44px) clamp(16px,4vw,32px) 64px}
 
+/* ?embed=1 -- the local dashboard iframes this page for the curve. Drop the masthead
+   and the closing notes there: a dek pointing at the public page, shown inside the
+   local control panel, only confuses. Everything measured stays. */
+:root[data-embed] .eyebrow,
+:root[data-embed] h1,
+:root[data-embed] .dek,
+:root[data-embed] .note{display:none}
+:root[data-embed] .wrap{padding-top:clamp(12px,2vw,20px); padding-bottom:20px}
+
 /* ── masthead ─────────────────────────────────────────── */
 .eyebrow{
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
@@ -726,7 +735,9 @@ const SERIES = [
 ];
 TOKENS.push("--s1", "--s2", "--s3", "--ink", "--ink-2", "--ink-3", "--surface");
 
-const SRC = new URLSearchParams(location.search).get("src") || "";
+const PARAMS = new URLSearchParams(location.search);
+if (PARAMS.has("embed")) document.documentElement.dataset.embed = "1";
+const SRC = PARAMS.get("src") || "";
 const LIVE_MODE = !!SRC;
 const SOURCE = SRC || "live.json";
 const POLL_RUNNING = 2000, POLL_FINISHED = 15000;
