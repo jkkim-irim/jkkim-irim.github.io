@@ -1,0 +1,646 @@
+<title>미나의 어항</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#EFF2ED; --surface:#E5EAE3; --sunk:#DAE1D8; --line:#C4CDC0;
+  --ink:#111719; --ink-2:#414D4A; --ink-3:#6D7975;
+  --accent:#1F6E7B; --accent-ink:#0E3C44; --accent-soft:#CFE1E2; --on-accent:#FFFFFF;
+  --ok:#4F7A31; --warn:#B08415; --crit:#AC3F27;
+  --t-water:#3D6E88; --t-rock:#67736E; --t-void:#E8EDE6;
+  --t-hill:#7F9159; --t-hut:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72; --t-forge:#AA5C34;
+  --shadow:0 1px 0 rgba(17,23,25,.06), 0 8px 24px -18px rgba(17,23,25,.5);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1113; --surface:#141B1D; --sunk:#0A0F10; --line:#26312F;
+    --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
+    --accent:#4FA3AE; --accent-ink:#BFE0E3; --accent-soft:#1B3A3F; --on-accent:#080E0F;
+    --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
+    --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
+    --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
+    --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 28px -20px #000;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1113; --surface:#141B1D; --sunk:#0A0F10; --line:#26312F;
+  --ink:#E2E8E2; --ink-2:#A3AFAB; --ink-3:#78847F;
+  --accent:#4FA3AE; --accent-ink:#BFE0E3; --accent-soft:#1B3A3F; --on-accent:#080E0F;
+  --ok:#84B45B; --warn:#D6A93A; --crit:#D9694C;
+  --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
+  --t-hill:#5D6E3E; --t-hut:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350; --t-forge:#8C4726;
+  --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 28px -20px #000;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:clamp(20px,4vw,44px) clamp(16px,4vw,32px) 64px}
+
+/* ── masthead ─────────────────────────────────────────── */
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin:0 0 10px;
+}
+h1{
+  font-family:"Gowun Batang",Batang,serif; font-weight:700;
+  font-size:clamp(30px,5vw,46px); line-height:1.1; margin:0 0 10px;
+  letter-spacing:-.01em; text-wrap:balance;
+}
+.dek{margin:0 0 4px; max-width:60ch; color:var(--ink-2)}
+.dek b{color:var(--ink); font-weight:600}
+
+/* ── headline metric ──────────────────────────────────── */
+.gauge{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
+  margin:28px 0 20px; background:var(--line); border:1px solid var(--line);
+  border-radius:3px; overflow:hidden;
+}
+.gauge > div{background:var(--surface); padding:13px 16px 15px}
+.gauge dt{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin:0 0 4px;
+}
+.gauge dd{
+  margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:26px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1.15;
+  letter-spacing:-.02em;
+}
+.gauge dd small{display:block; font-family:"IBM Plex Sans KR",sans-serif;
+  font-size:12px; font-weight:400; color:var(--ink-3); letter-spacing:0; margin-top:3px}
+.gauge .lead dd{color:var(--accent)}
+
+/* ── controls ─────────────────────────────────────────── */
+.bar{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px;
+  padding:12px 14px; background:var(--surface); border:1px solid var(--line);
+  border-radius:3px; margin-bottom:18px; box-shadow:var(--shadow);
+}
+button{font:inherit; color:inherit; cursor:pointer}
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--paper); border:1px solid var(--line); border-radius:2px;
+  padding:7px 14px; font-size:14px; font-weight:500;
+  transition:background .12s, border-color .12s;
+}
+.btn:hover{border-color:var(--accent); background:var(--accent-soft)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.glyph{width:0; height:0; border-style:solid; flex:none}
+.glyph.play{border-width:5.5px 0 5.5px 9px; border-color:transparent transparent transparent currentColor}
+.glyph.pause{width:9px; height:11px; border:none;
+  border-left:3px solid currentColor; border-right:3px solid currentColor; background:none}
+.glyph.reset{width:11px; height:11px; border:none; position:relative}
+.glyph.reset::before{content:"↺"; position:absolute; inset:-6px 0 0; font-size:15px; line-height:1}
+
+.seg{display:inline-flex; border:1px solid var(--line); border-radius:2px; overflow:hidden}
+.seg button{
+  background:var(--paper); border:0; padding:7px 12px; font-size:13px; font-weight:500;
+  color:var(--ink-3); border-left:1px solid var(--line);
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;
+}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent-ink)}
+.seg.words button{font-family:"IBM Plex Sans KR",sans-serif}
+.lbl{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+}
+.seed{
+  width:76px; font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;
+  font-variant-numeric:tabular-nums; padding:7px 9px; color:var(--ink);
+  background:var(--paper); border:1px solid var(--line); border-radius:2px;
+}
+.spacer{flex:1 1 auto; min-width:0}
+:where(button,input):focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ── main panel ───────────────────────────────────────── */
+.panel{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; align-items:start}
+@media (max-width:820px){.panel{grid-template-columns:minmax(0,1fr)}}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  padding:16px; box-shadow:var(--shadow);
+}
+.card h2{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3);
+  margin:0 0 12px; display:flex; justify-content:space-between; gap:10px;
+}
+.card h2 em{font-style:normal; color:var(--ink-2); letter-spacing:.04em; text-transform:none}
+#map{display:block; width:100%; height:auto; border-radius:2px; background:var(--t-void)}
+
+.legend{
+  display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:12px;
+  font-size:12px; color:var(--ink-2);
+}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.legend i{width:10px; height:10px; border-radius:2px; flex:none}
+
+/* ── need meters ──────────────────────────────────────── */
+.meters{display:flex; flex-direction:column; gap:11px}
+.meter{display:grid; grid-template-columns:52px minmax(0,1fr) 44px; gap:9px; align-items:center}
+.meter .name{font-size:13px; color:var(--ink-2)}
+.meter .track{position:relative; height:9px; background:var(--sunk); border-radius:1px; overflow:hidden}
+.meter .fill{position:absolute; inset:0 auto 0 0; width:0; border-radius:1px; transition:width .1s linear}
+.meter .avg{position:absolute; top:-2px; bottom:-2px; width:1px; background:var(--ink); opacity:.42}
+.meter .val{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12.5px;
+  font-variant-numeric:tabular-nums; text-align:right; color:var(--ink-2);
+}
+@media (prefers-reduced-motion: reduce){.meter .fill{transition:none}}
+
+/* ── goal tally ───────────────────────────────────────── */
+.tally{display:flex; flex-direction:column; gap:6px}
+.trow{display:grid; grid-template-columns:46px minmax(0,1fr) 34px; gap:9px; align-items:center}
+.trow .g{font-size:12.5px; color:var(--ink-2); white-space:nowrap}
+.trow .g.dim{color:var(--ink-3)}
+.trow .b{height:7px; background:var(--sunk); border-radius:1px; overflow:hidden}
+.trow .b i{display:block; height:100%; width:0; background:var(--accent); opacity:.75}
+.trow .b i.sparse{background:var(--ink-3); opacity:.5}
+.trow .n{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
+  font-variant-numeric:tabular-nums; text-align:right; color:var(--ink-3)}
+.now{
+  display:flex; align-items:baseline; gap:8px; margin-bottom:14px;
+  padding-bottom:13px; border-bottom:1px solid var(--line);
+}
+.now b{font-family:"Gowun Batang",Batang,serif; font-size:24px; font-weight:700; line-height:1}
+.now span{font-size:12.5px; color:var(--ink-3)}
+#spark{display:block; width:100%; height:44px; margin-top:4px}
+
+/* ── footer ───────────────────────────────────────────── */
+.note{
+  margin-top:26px; padding-top:18px; border-top:1px solid var(--line);
+  font-size:13px; color:var(--ink-3); max-width:78ch;
+}
+.note p{margin:0 0 8px}
+.note b{color:var(--ink-2); font-weight:600}
+.note code{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12px;
+  background:var(--sunk); padding:1px 5px; border-radius:2px; color:var(--ink-2);
+}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">S1 · 월드 + 화면 · LLM 없음</p>
+  <h1>미나의 어항</h1>
+  <p class="dek">약초를 캐서 파는 <b>미나</b>가 12×12 마을을 걷는다. 니즈 다섯 개가 매 스텝
+    자라고, 목표에 맞는 장소에 서 있는 동안에만 줄어든다. <b>정책</b>을 랜덤 행동으로 바꿔
+    보면 아래 숫자가 무너진다 — 그 격차가 S1 의 합격 기준이다.</p>
+
+  <dl class="gauge">
+    <div class="lead"><dt>니즈충족률</dt><dd id="g-score">—<small id="g-score-sub">1 − 평균 최악니즈</small></dd></div>
+    <div><dt>날짜</dt><dd id="g-clock">—<small id="g-clock-sub">30일 중</small></dd></div>
+    <div><dt>최악 니즈</dt><dd id="g-worst">—<small id="g-worst-sub">지금 가장 급한 것</small></dd></div>
+    <div><dt>경과 스텝</dt><dd id="g-steps">—<small>1일 = 144스텝</small></dd></div>
+  </dl>
+
+  <div class="bar">
+    <button class="btn primary" id="play" aria-pressed="false">
+      <span class="glyph play" id="play-glyph" aria-hidden="true"></span><span id="play-text">재생</span>
+    </button>
+    <button class="btn" id="reset"><span class="glyph reset" aria-hidden="true"></span>처음으로</button>
+    <span class="spacer"></span>
+    <span class="lbl">정책</span>
+    <span class="seg words" id="policy" role="group" aria-label="행동 선택 정책">
+      <button data-v="random" aria-pressed="false">랜덤 행동</button>
+      <button data-v="utility" aria-pressed="true">유틸리티</button>
+    </span>
+    <span class="lbl">속도</span>
+    <span class="seg" id="speed" role="group" aria-label="재생 속도">
+      <button data-v="1" aria-pressed="true">×1</button>
+      <button data-v="6" aria-pressed="false">×6</button>
+      <button data-v="24" aria-pressed="false">×24</button>
+    </span>
+    <span class="lbl">시드</span>
+    <input class="seed" id="seed" type="number" min="0" max="99999" step="1" value="7" aria-label="난수 시드">
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <h2>마을 <em id="map-sub">—</em></h2>
+      <canvas id="map" width="720" height="720" role="img"
+              aria-label="12×12 격자 마을 지도와 미나의 현재 위치"></canvas>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h2>지금 <em id="tick-sub">—</em></h2>
+        <div class="now"><b id="now-goal">—</b><span id="now-why">—</span></div>
+        <div class="meters" id="meters"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px">
+        <h2>일별 니즈충족률 <em id="spark-sub">—</em></h2>
+        <canvas id="spark" width="560" height="132" role="img"
+                aria-label="일별 니즈충족률 추이"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>목표 선택 <em>두 정책 공통</em></h2>
+        <div class="tally" id="tally"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <p><b>이 페이지는 브라우저 안에서 시뮬레이션을 돌린다.</b> 연구 PC 의 파이썬 프로세스에
+      붙어 있는 게 아니다 — <code>world.py</code> · <code>npc.py</code> 를 JS 로 이식한 것이고,
+      지도·감쇠율·목표↔장소↔니즈 매핑은 <code>tools/export_world.py</code> 가 파이썬에서
+      뽑아낸 값을 그대로 쓴다. 상수는 표류하지 않지만 <b>난수는 다르다</b> —
+      같은 시드라도 파이썬 run 과 스텝 단위로 일치하지는 않는다.</p>
+    <p><b>목표 선택은 두 정책이 똑같다</b> — 매 틱 가장 급한 니즈를 푸는 목표를 고른다
+      (<code>npc.urgent_goal</code>). 토글이 바꾸는 것은 <b>행동 선택</b>뿐이다: 랜덤 행동은
+      <code>북·남·서·동·대기</code> 5개 중 균등하게, 유틸리티는 목표 방향과 3×3 시야만 보고
+      한 칸을 고른다(<code>policy.py</code>). 그래야 S1 이 재려는 「랜덤 정책 기준선」과 같은
+      비교가 된다. 합격 기준은 두 니즈충족률 분포가 시드 10개에서 겹치지 않는 것이다.</p>
+    <p><b>유틸리티도 지도를 못 본다.</b> obs 25차원에 절대 좌표가 없어서 항법이 반응형이다 —
+      오목한 장애물이면 갇힐 수 있다. 이 지도에는 없다: 목표 8개 × 출발 129칸 1032쌍이 전부
+      도달하고 최악 17스텝이다. 다만 <b>17스텝은 1틱(6스텝)보다 길다</b> — 도착 전에 목표가
+      다시 선택되는 흔들림이 그대로 보인다.</p>
+    <p><b>일하기 · 돌보기 · 모으기 는 어떤 니즈도 줄이지 않는다.</b> 설계된 대조군이다 —
+      갈 곳은 있어서 이동은 배우지만 보상이 희소하다. 랜덤이 낮게 나오는 이유의 일부가 이것이다.</p>
+  </div>
+</div>
+
+<script>
+const D = {
+ "map": ["~..H........","~..HH.......","~.U.........","~...........","~R..........",
+         "~...........","~.....QQ....","~.....QQ...#","~..........#","~......B....",
+         "~...........","~..........#"],
+ "size": 12,
+ "placeOf": {"H":"언덕","U":"오두막","R":"강가","Q":"광장","B":"대장간"},
+ "blocked": "~#",
+ "goals": ["먹기","자기","일하기","대화","피신","배회","돌보기","모으기"],
+ "needs": ["배고픔","피로","안전","사회","호기심"],
+ "stepsPerTick": 6, "ticksPerDay": 24, "stepsPerDay": 144,
+ "saturateDays": {"배고픔":0.5,"피로":1.0,"호기심":1.5,"사회":2.0,"안전":3.0},
+ "reliefPerStep": 0.2,
+ "goalPlace": {"먹기":"오두막","자기":"오두막","피신":"오두막","돌보기":"오두막",
+               "일하기":"언덕","대화":"대장간","모으기":"광장","배회":"강가"},
+ "goalNeed": {"먹기":"배고픔","자기":"피로","피신":"안전","대화":"사회","배회":"호기심"},
+ "obsDim": 25, "npcName": "미나", "days": 30
+};
+
+const N = D.size;
+const BLOCKED = new Set(D.blocked.split(""));
+const NEED_GOAL = Object.fromEntries(Object.entries(D.goalNeed).map(([g,n]) => [n,g]));
+const PLACES = [...new Set(Object.values(D.placeOf))];
+const TERRAIN = {"~":"--t-water","#":"--t-rock",".":"--t-void",
+                 "H":"--t-hill","U":"--t-hut","R":"--t-river","Q":"--t-square","B":"--t-forge"};
+
+const passable = (r,c) => r>=0 && r<N && c>=0 && c<N && !BLOCKED.has(D.map[r][c]);
+const placeAt  = (r,c) => passable(r,c) ? (D.placeOf[D.map[r][c]] ?? null) : null;
+
+/* Cells of each place, scanned row then column so the "nearest goal cell" tie-break
+   matches npc.toward() on the Python side. */
+const PLACE_CELLS = Object.fromEntries(PLACES.map(p => [p, []]));
+for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+  const p = placeAt(r,c);
+  if (p) PLACE_CELLS[p].push([r,c]);
+}
+
+/* npc.py: unit direction and squashed Manhattan distance to the nearest goal cell. */
+const DIST_SCALE = 4;
+function toward(pos, goal){
+  const [r,c] = pos;
+  let best = null, bd = Infinity;
+  for (const [tr,tc] of PLACE_CELLS[D.goalPlace[goal]]){
+    const d = Math.abs(tr-r) + Math.abs(tc-c);
+    if (d < bd){ bd = d; best = [tr,tc]; }
+  }
+  const dr = best[0]-r, dc = best[1]-c, d = Math.abs(dr) + Math.abs(dc);
+  const sc = Math.max(Math.abs(dr), Math.abs(dc)) || 1;
+  return [dr/sc, dc/sc, d/(d + DIST_SCALE)];
+}
+
+/* policy.py: 5 actions. The utility baseline reads obs only -- goal direction plus a 3x3
+   window, no map -- so it cannot route around a concave obstacle. This map has none
+   (python policy.py walks all 1032 start/goal pairs). */
+const MOVES = [[-1,0],[1,0],[0,-1],[0,1]];
+const ACTIONS = [...MOVES, [0,0]];
+const STAY = MOVES.length;
+const PATCH_IX = MOVES.map(([dr,dc]) => (dr+1)*3 + (dc+1));
+
+function patchOf(r, c){
+  const out = [];
+  for (const dr of [-1,0,1]) for (const dc of [-1,0,1]) out.push(passable(r+dr, c+dc) ? 1 : 0);
+  return out;
+}
+
+function actUtility(s, goal){
+  const [dr, dc, dist] = toward(s.pos, goal);
+  if (dist === 0) return STAY;
+  const patch = patchOf(s.pos[0], s.pos[1]);
+  const want = [];
+  if (dr) want.push([Math.abs(dr), dr < 0 ? 0 : 1]);
+  if (dc) want.push([Math.abs(dc), dc < 0 ? 2 : 3]);
+  want.sort((a,b) => (b[0]-a[0]) || (b[1]-a[1]));   /* matches Python's reverse tuple sort */
+  for (const [,a] of want) if (patch[PATCH_IX[a]] > 0.5) return a;
+  const open = [0,1,2,3].filter(a => patch[PATCH_IX[a]] > 0.5);
+  return open.length ? open[Math.floor(s.rnd() * open.length)] : STAY;
+}
+
+const FREE = [];
+for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (passable(r,c)) FREE.push([r,c]);
+
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a;
+    t = Math.imul(t ^ t>>>15, t | 1); t ^= t + Math.imul(t ^ t>>>7, t | 61);
+    return ((t ^ t>>>14) >>> 0) / 4294967296; };
+}
+
+function makeRun(seed, policy){
+  const rnd = mulberry32(seed * 2654435761 + 12345);
+  const start = FREE[Math.floor(rnd() * FREE.length)].slice();
+  const s = {
+    seed, policy, rnd, pos:start, prev:start.slice(), t:0, goal:null, done:false,
+    need:{}, needSum:{}, worstSum:0, dayWorstSum:0, daily:[], action:4,
+    tally:Object.fromEntries(D.goals.map(g => [g,0])), trail:[],
+  };
+  /* seeds differ in where 미나 wakes up and how rested she is */
+  for (const n of D.needs){ s.need[n] = rnd() * 0.3; s.needSum[n] = 0; }
+  s.goal = chooseGoal(s);
+  s.tally[s.goal]++;
+  return s;
+}
+
+/* npc.urgent_goal(): the goal that relieves the worst deficit. Both arms use it, so the
+   only thing the toggle changes is action selection -- DESIGN's 「랜덤 정책 기준선」. */
+function chooseGoal(s){
+  let worst = D.needs[0];
+  for (const n of D.needs) if (s.need[n] > s.need[worst]) worst = n;
+  return NEED_GOAL[worst];
+}
+
+function stepOnce(s){
+  if (s.done) return;
+  if (s.t > 0 && s.t % D.stepsPerTick === 0){ s.goal = chooseGoal(s); s.tally[s.goal]++; }
+
+  const [r,c] = s.pos;
+  s.prev = [r,c];
+  s.action = s.policy === "random"
+    ? Math.floor(s.rnd() * ACTIONS.length)
+    : actUtility(s, s.goal);
+  const [mr,mc] = ACTIONS[s.action];
+  if (passable(r+mr, c+mc)) s.pos = [r+mr, c+mc];      /* npc.move: a blocked step is burned */
+  s.trail.push(s.pos.slice());
+  if (s.trail.length > 26) s.trail.shift();
+
+  for (const n of D.needs)
+    s.need[n] = Math.min(1, s.need[n] + 1 / (D.saturateDays[n] * D.stepsPerDay));
+  const relieved = D.goalNeed[s.goal];
+  if (relieved && placeAt(s.pos[0], s.pos[1]) === D.goalPlace[s.goal])
+    s.need[relieved] = Math.max(0, s.need[relieved] - D.reliefPerStep);
+
+  let worst = 0;
+  for (const n of D.needs){ s.needSum[n] += s.need[n]; if (s.need[n] > worst) worst = s.need[n]; }
+  s.worstSum += worst; s.dayWorstSum += worst;
+
+  s.t++;
+  if (s.t % D.stepsPerDay === 0){
+    s.daily.push(1 - s.dayWorstSum / D.stepsPerDay);
+    s.dayWorstSum = 0;
+  }
+  if (s.t >= D.days * D.stepsPerDay) s.done = true;
+}
+
+const clock = s => ({
+  day: Math.floor(s.t / D.stepsPerDay) + 1,
+  tick: Math.floor(s.t / D.stepsPerTick) % D.ticksPerDay,
+  step: s.t % D.stepsPerTick,
+});
+const score = s => s.t ? 1 - s.worstSum / s.t : null;
+const worstNeed = s => D.needs.reduce((a,b) => s.need[a] >= s.need[b] ? a : b);
+
+/* ── DOM ─────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Re-read every frame so a theme switch is picked up, but once -- not once per cell.
+   getComputedStyle inside the 12x12 loop cost 144 reflow-reads per canvas per frame. */
+const TOKENS = ["--paper","--line","--accent","--accent-soft","--ok","--warn","--crit",
+                "--t-water","--t-rock","--t-void","--t-hill","--t-hut","--t-river",
+                "--t-square","--t-forge"];
+let PAL = {};
+function readPalette(){
+  const cs = getComputedStyle(document.documentElement);
+  for (const t of TOKENS) PAL[t] = cs.getPropertyValue(t).trim();
+}
+const css = v => PAL[v] || "";
+
+let state = makeRun(7, "utility");
+let playing = false, mult = 1, acc = 0, last = 0;
+const BASE = D.stepsPerTick;                     /* ×1 = one tick per second */
+
+$("legend").innerHTML = [["--t-hill","언덕"],["--t-hut","오두막"],["--t-river","강가"],
+  ["--t-square","광장"],["--t-forge","대장간"],["--t-water","강 (통행 불가)"],
+  ["--t-rock","바위 (통행 불가)"]]
+  .map(([v,n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join("");
+
+$("meters").innerHTML = D.needs.map(n => `
+  <div class="meter">
+    <span class="name">${n}</span>
+    <span class="track"><i class="fill" data-need="${n}"></i><i class="avg" data-avg="${n}"></i></span>
+    <span class="val" data-val="${n}">0.00</span>
+  </div>`).join("");
+
+$("tally").innerHTML = D.goals.map(g => {
+  const sparse = !D.goalNeed[g];
+  return `<div class="trow">
+    <span class="g${sparse ? " dim" : ""}">${g}</span>
+    <span class="b"><i data-tally="${g}"${sparse ? ' class="sparse"' : ""}></i></span>
+    <span class="n" data-tallyn="${g}">0</span>
+  </div>`;
+}).join("");
+
+function needColor(v){ return v < 0.4 ? css("--ok") : v < 0.7 ? css("--warn") : css("--crit"); }
+
+function drawMap(s, frac){
+  const cv = $("map"), dpr = Math.min(devicePixelRatio || 1, 2);
+  const box = cv.clientWidth || 720;
+  if (cv.width !== Math.round(box * dpr)){
+    cv.width = Math.round(box * dpr); cv.height = Math.round(box * dpr);
+  }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const S = box / N;
+  g.clearRect(0, 0, box, box);
+
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+    g.fillStyle = css(TERRAIN[D.map[r][c]] || "--t-void");
+    g.fillRect(c*S, r*S, S, S);
+  }
+  g.strokeStyle = css("--line"); g.globalAlpha = .5; g.lineWidth = 1;
+  for (let i=1;i<N;i++){
+    g.beginPath(); g.moveTo(i*S, 0); g.lineTo(i*S, box); g.stroke();
+    g.beginPath(); g.moveTo(0, i*S); g.lineTo(box, i*S); g.stroke();
+  }
+  g.globalAlpha = 1;
+
+  /* ring the cells the current goal sends her to */
+  const target = D.goalPlace[s.goal];
+  g.strokeStyle = css("--accent"); g.lineWidth = 2;
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (placeAt(r,c) === target)
+    g.strokeRect(c*S + 2, r*S + 2, S - 4, S - 4);
+
+  /* place names, once per place, on its first cell */
+  g.font = `500 ${Math.max(9, S * 0.27)}px "IBM Plex Sans KR", sans-serif`;
+  g.textAlign = "center"; g.textBaseline = "middle";
+  const drawn = new Set();
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+    const p = placeAt(r,c);
+    if (!p || drawn.has(p)) continue;
+    drawn.add(p);
+    g.fillStyle = "rgba(255,255,255,.92)";
+    g.fillText(p, c*S + S/2, r*S + S/2 + S*0.02);
+  }
+
+  /* trail */
+  s.trail.forEach((p, i) => {
+    g.globalAlpha = (i + 1) / s.trail.length * 0.3;
+    g.fillStyle = css("--accent");
+    g.beginPath(); g.arc(p[1]*S + S/2, p[0]*S + S/2, S*0.11, 0, 7); g.fill();
+  });
+  g.globalAlpha = 1;
+
+  /* 미나 — interpolated between the last two cells so ×1 reads as walking */
+  const e = reduced ? 1 : 1 - Math.pow(1 - Math.min(frac, 1), 3);
+  const y = (s.prev[0] + (s.pos[0] - s.prev[0]) * e) * S + S/2;
+  const x = (s.prev[1] + (s.pos[1] - s.prev[1]) * e) * S + S/2;
+  g.fillStyle = css("--accent");
+  g.beginPath(); g.arc(x, y, S*0.3, 0, 7); g.fill();
+  g.strokeStyle = css("--paper"); g.lineWidth = 2.5;
+  g.beginPath(); g.arc(x, y, S*0.3, 0, 7); g.stroke();
+  g.fillStyle = css("--paper");
+  g.font = `700 ${Math.max(9, S*0.3)}px "Gowun Batang", serif`;
+  g.fillText(D.npcName[0], x, y + S*0.02);
+}
+
+function drawSpark(s){
+  const cv = $("spark"), dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = cv.clientWidth || 280, h = 44;
+  if (cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  g.strokeStyle = css("--line"); g.lineWidth = 1;
+  for (const v of [0.25, 0.5, 0.75]){
+    g.beginPath(); g.moveTo(0, h - v*h); g.lineTo(w, h - v*h); g.stroke();
+  }
+  if (!s.daily.length) return;
+
+  const px = i => D.days > 1 ? i / (D.days - 1) * w : 0;
+  const py = v => h - Math.max(0, Math.min(1, v)) * h;
+  g.beginPath(); g.moveTo(px(0), h);
+  s.daily.forEach((v,i) => g.lineTo(px(i), py(v)));
+  g.lineTo(px(s.daily.length - 1), h); g.closePath();
+  g.fillStyle = css("--accent-soft"); g.fill();
+
+  g.beginPath();
+  s.daily.forEach((v,i) => i ? g.lineTo(px(i), py(v)) : g.moveTo(px(i), py(v)));
+  g.strokeStyle = css("--accent"); g.lineWidth = 1.75; g.stroke();
+
+  const lastI = s.daily.length - 1;
+  g.fillStyle = css("--accent");
+  g.beginPath(); g.arc(px(lastI), py(s.daily[lastI]), 2.75, 0, 7); g.fill();
+}
+
+function paint(frac){
+  readPalette();
+  const s = state, c = clock(s), sc = score(s);
+  $("g-score").firstChild.nodeValue = sc === null ? "—" : sc.toFixed(3);
+  $("g-clock").firstChild.nodeValue = `${Math.min(c.day, D.days)}일`;
+  $("g-clock-sub").textContent = s.done ? "30일 완료" : `${c.tick}시 · 30일 중`;
+  const wn = worstNeed(s);
+  $("g-worst").firstChild.nodeValue = s.need[wn].toFixed(2);
+  $("g-worst-sub").textContent = wn;
+  $("g-steps").firstChild.nodeValue = s.t.toLocaleString();
+
+  $("map-sub").textContent = `${s.pos[0]},${s.pos[1]} → ${D.goalPlace[s.goal]}`;
+  $("tick-sub").textContent = `${c.day}일 ${String(c.tick).padStart(2,"0")}시 ${c.step}/6`;
+  $("now-goal").textContent = s.goal;
+  const rel = D.goalNeed[s.goal];
+  $("now-why").textContent = rel
+    ? `${D.goalPlace[s.goal]}에서 ${rel} 완화`
+    : `${D.goalPlace[s.goal]}으로 — 니즈 완화 없음`;
+  $("spark-sub").textContent = s.daily.length ? `${s.daily.length}일` : "첫날 진행 중";
+
+  for (const n of D.needs){
+    const v = s.need[n];
+    const fill = document.querySelector(`[data-need="${n}"]`);
+    fill.style.width = (v * 100).toFixed(1) + "%";
+    fill.style.background = needColor(v);
+    document.querySelector(`[data-val="${n}"]`).textContent = v.toFixed(2);
+    const avg = s.t ? s.needSum[n] / s.t : 0;
+    document.querySelector(`[data-avg="${n}"]`).style.left = (avg * 100).toFixed(1) + "%";
+  }
+
+  const top = Math.max(1, ...Object.values(s.tally));
+  for (const g of D.goals){
+    document.querySelector(`[data-tally="${g}"]`).style.width =
+      (s.tally[g] / top * 100).toFixed(1) + "%";
+    document.querySelector(`[data-tallyn="${g}"]`).textContent = s.tally[g];
+  }
+
+  drawMap(s, frac);
+  drawSpark(s);
+}
+
+function setPlaying(on){
+  playing = on && !state.done;
+  $("play").setAttribute("aria-pressed", String(playing));
+  $("play-glyph").className = "glyph " + (playing ? "pause" : "play");
+  $("play-text").textContent = playing ? "일시정지" : (state.done ? "완료" : "재생");
+  if (playing) last = performance.now();
+}
+
+function restart(){
+  const seed = Math.max(0, Math.min(99999, parseInt($("seed").value, 10) || 0));
+  $("seed").value = seed;
+  const pol = document.querySelector('#policy [aria-pressed="true"]').dataset.v;
+  state = makeRun(seed, pol);
+  acc = 0;
+  setPlaying(false);
+  paint(1);
+}
+
+$("play").addEventListener("click", () => {
+  if (state.done) restart();
+  setPlaying(!playing);
+});
+$("reset").addEventListener("click", restart);
+$("seed").addEventListener("change", restart);
+
+for (const [id, fn] of [["policy", restart], ["speed", null]]){
+  $(id).addEventListener("click", ev => {
+    const b = ev.target.closest("button");
+    if (!b) return;
+    for (const o of $(id).children) o.setAttribute("aria-pressed", String(o === b));
+    if (fn) fn(); else mult = Number(b.dataset.v);
+  });
+}
+
+function frame(ts){
+  if (playing){
+    acc += (ts - last) / 1000 * BASE * mult;
+    last = ts;
+    let budget = 4000;
+    while (acc >= 1 && !state.done && budget--){ stepOnce(state); acc -= 1; }
+    if (state.done){ acc = 0; setPlaying(false); }
+  }
+  paint(playing ? acc : 1);
+  requestAnimationFrame(frame);
+}
+
+paint(1);
+requestAnimationFrame(ts => { last = ts; frame(ts); });
+</script>

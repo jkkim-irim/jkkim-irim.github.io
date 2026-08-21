@@ -180,7 +180,7 @@ layout: default
       // target: _blank) leaves them alone -- it only treats a different host as
       // external. So match by path prefix.
       (function () {
-        var APP_PATHS = ["/allex-playground"];
+        var APP_PATHS = ["/allex-playground", "/npc-sim"];
         document.querySelectorAll(".projects a[href]").forEach(function (a) {
           var url = new URL(a.href, location.href);
           var offSite = url.hostname !== location.hostname;
