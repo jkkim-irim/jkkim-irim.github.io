@@ -12,7 +12,7 @@
   --t-water:#3D6E88; --t-rock:#67736E; --t-void:#E8EDE6;
   --t-hill:#7F9159; --t-home:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72;
   --t-forge:#AA5C34; --t-diner:#B5783F; --t-hall:#7A72A0;
-  --t-road:#8A8A84; --t-wall:#4A423C;
+  --t-road:#8A8A84; --t-wall:#4A423C; --t-bridge:#C08A4A; --t-tunnel:#6B6B7A;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -22,7 +22,7 @@
     --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
     --t-hill:#5D6E3E; --t-home:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350;
     --t-forge:#8C4726; --t-diner:#8F5A26; --t-hall:#565080;
-    --t-road:#605E58; --t-wall:#3A332E;
+    --t-road:#605E58; --t-wall:#3A332E; --t-bridge:#9A6A2E; --t-tunnel:#4A4A58;
   }
 }
 :root[data-theme="dark"]{
@@ -32,7 +32,7 @@
   --t-water:#27506B; --t-rock:#3A4643; --t-void:#161D1F;
   --t-hill:#5D6E3E; --t-home:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350;
   --t-forge:#8C4726; --t-diner:#8F5A26; --t-hall:#565080;
-  --t-road:#605E58; --t-wall:#3A332E;
+  --t-road:#605E58; --t-wall:#3A332E; --t-bridge:#9A6A2E; --t-tunnel:#4A4A58;
 }
 
 *{box-sizing:border-box}
@@ -146,14 +146,20 @@ const tokenOf = ch => TERRAIN[ch] || "--t-void";
 /* Built things override terrain, exactly as world.passable does: a wall blocks, a road
    carries over anything -- which is what makes a road on the river a bridge. */
 const key = (r,c) => r + "," + c;
-let ROAD = new Set(), WALL = new Set();
+/* cell -> 도로 · 다리 · 터널 · 벽. One per cell, because nothing can be built where
+   something already stands -- clearing it is what 철거 is for. */
+let BUILT = new Map();
+const CROSSES = new Set(["도로", "다리", "터널"]);
+const BUILT_TOKEN = {"도로":"--t-road", "다리":"--t-bridge",
+                     "터널":"--t-tunnel", "벽":"--t-wall"};
 const size = () => (D ? D.size : 0);
 /* tileAt, not at -- draw() already has a local `at` for the current frame. */
 const tileAt = (r,c) => (D && r>=0 && r<D.size && c>=0 && c<D.size) ? D.map[r][c] : null;
 const passable = (r,c) => {
   const ch = tileAt(r,c);
-  if (ch === null || WALL.has(key(r,c))) return false;
-  if (ROAD.has(key(r,c))) return true;
+  const what = BUILT.get(key(r,c));
+  if (ch === null || what === "벽") return false;
+  if (CROSSES.has(what)) return true;
   return !D.blocked.includes(ch);
 };
 const placeAt = (r,c) => { const ch = tileAt(r,c); return ch === null ? null
@@ -165,7 +171,7 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TOKENS = ["--paper","--line","--accent","--ink","--ink-2","--ink-3","--crit","--warn",
                 "--ok","--surface","--t-water","--t-rock","--t-void","--t-hill","--t-home",
                 "--t-river","--t-square","--t-forge","--t-diner","--t-hall",
-                "--t-road","--t-wall"];
+                "--t-road","--t-wall","--t-bridge","--t-tunnel"];
 let PAL = {};
 function readPalette(){
   const cs = getComputedStyle(document.documentElement);
@@ -189,8 +195,9 @@ function drawLegend(){
   for (const [p, t] of seen) if (!LEGEND_ORDER.includes(p)) rows.push([t, p]);
   if (homes.length) rows.push(["--t-home", `집 ${homes.length}채`]);
   rows.push(["--t-water","강"], ["--t-rock","산"]);
-  if (ROAD.size) rows.push(["--t-road", `도로 ${ROAD.size}`]);
-  if (WALL.size) rows.push(["--t-wall", `벽 ${WALL.size}`]);
+  const tally = new Map();
+  for (const kind of BUILT.values()) tally.set(kind, (tally.get(kind) || 0) + 1);
+  for (const [kind, n] of tally) rows.push([BUILT_TOKEN[kind] || "--t-road", `${kind} ${n}`]);
   $("legend").innerHTML = rows
     .map(([v,n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join("");
 }
@@ -216,10 +223,10 @@ function ingest(payload){
     if (fresh) drawLegend();
   }
   if (payload.built){
-    const before = ROAD.size + WALL.size;
-    ROAD = new Set((payload.built.road || []).map(([r,c]) => key(r,c)));
-    WALL = new Set((payload.built.wall || []).map(([r,c]) => key(r,c)));
-    if (before !== ROAD.size + WALL.size) drawLegend();
+    const before = [...BUILT.entries()].map(([k,v]) => k+v).sort().join();
+    BUILT = new Map((payload.built || []).map(([r,c,kind]) => [key(r,c), kind]));
+    const now = [...BUILT.entries()].map(([k,v]) => k+v).sort().join();
+    if (before !== now) drawLegend();
   }
   PLAY.rate = payload.rate || 6;
   PLAY.cast = payload.cast || [];
@@ -265,10 +272,8 @@ function draw(){
   g.clearRect(0, 0, box, box);
 
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++){
-    let tok = tokenOf(D.map[r][c]);
-    if (ROAD.has(key(r,c))) tok = "--t-road";
-    else if (WALL.has(key(r,c))) tok = "--t-wall";
-    g.fillStyle = css(tok);
+    const what = BUILT.get(key(r,c));
+    g.fillStyle = css(what ? (BUILT_TOKEN[what] || "--t-road") : tokenOf(D.map[r][c]));
     g.fillRect(c*S, r*S, S, S);
   }
   g.strokeStyle = css("--line"); g.globalAlpha = .45; g.lineWidth = 1;
