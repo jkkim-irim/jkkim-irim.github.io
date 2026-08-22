@@ -13,6 +13,11 @@
   --t-hill:#7F9159; --t-home:#9C7B4C; --t-river:#6EA0B4; --t-square:#A79A72;
   --t-forge:#AA5C34; --t-diner:#B5783F; --t-hall:#7A72A0;
   --t-road:#8A8A84; --t-wall:#4A423C; --t-bridge:#C08A4A; --t-tunnel:#6B6B7A;
+  /* Three series, in fixed order, never cycled. Checked against this page's own surface
+     in both themes: lightness band, chroma floor, CVD separation (worst adjacent pair
+     ΔE 20.0 protan / 15.8 tritan light, 17.4 / 10.4 dark), normal-vision floor and
+     contrast. Separate from --ok/--warn/--crit, which mean state and are not series. */
+  --s1:#0A7EA0; --s2:#C08A0C; --s3:#B0357C;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -23,6 +28,7 @@
     --t-hill:#5D6E3E; --t-home:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350;
     --t-forge:#8C4726; --t-diner:#8F5A26; --t-hall:#565080;
     --t-road:#605E58; --t-wall:#3A332E; --t-bridge:#9A6A2E; --t-tunnel:#4A4A58;
+  --s1:#2691AD; --s2:#BC8A1B; --s3:#BC4E8E;
   }
 }
 :root[data-theme="dark"]{
@@ -33,6 +39,7 @@
   --t-hill:#5D6E3E; --t-home:#7A5D36; --t-river:#3F7A91; --t-square:#7E7350;
   --t-forge:#8C4726; --t-diner:#8F5A26; --t-hall:#565080;
   --t-road:#605E58; --t-wall:#3A332E; --t-bridge:#9A6A2E; --t-tunnel:#4A4A58;
+  --s1:#2691AD; --s2:#BC8A1B; --s3:#BC4E8E;
 }
 
 *{box-sizing:border-box}
@@ -103,6 +110,24 @@ body{
   font-variant-numeric:tabular-nums;
 }
 .note{margin:16px 0 0; font-size:12.5px; color:var(--ink-3)}
+
+/* ── the night ────────────────────────────────────────────
+   Two charts, never one with two axes. NLL and a per-decision rate are different
+   measures on different scales, and putting them on one pair of axes invites the
+   reader to compare slopes that have nothing to do with each other -- which is the
+   whole point here, since the two disagree. */
+.charts{margin-top:22px; display:flex; flex-direction:column; gap:18px}
+.chart{background:var(--surface); border:1px solid var(--line); border-radius:6px;
+       padding:14px 14px 10px}
+.chart h2{margin:0 0 2px; font-size:13px; font-weight:600; letter-spacing:.01em}
+.chart p{margin:0 0 10px; font-size:11.5px; color:var(--ink-3); line-height:1.5}
+.chart canvas{display:block; width:100%; height:auto}
+.keys{display:flex; flex-wrap:wrap; gap:14px; margin-top:8px;
+      font-size:11.5px; color:var(--ink-2)}
+.keys b{display:inline-block; width:20px; height:2px; vertical-align:middle;
+        margin-right:6px; border-radius:1px}
+.keys span{font-family:"IBM Plex Mono",ui-monospace,monospace;
+           font-variant-numeric:tabular-nums; color:var(--ink-3)}
 </style>
 
 <div class="wrap">
@@ -118,6 +143,26 @@ body{
   <div class="legend" id="legend"></div>
   <div class="cast" id="cast"></div>
   <p class="note" id="note"></p>
+
+  <div class="charts">
+    <section class="chart">
+      <h2>밤마다 재는 세 가지 — 프로브 NLL</h2>
+      <p>낮을수록 잘 안다. <b>정체성</b>은 이 사람이 누구인가, <b>사실</b>은 마을에서
+         실제로 있었던 일, <b>일반</b>은 마을과 무관한 능력.</p>
+      <canvas id="nll" width="720" height="200" role="img"
+              aria-label="밤에 따른 프로브 세 종의 NLL 곡선"></canvas>
+      <div class="keys" id="nllkeys"></div>
+    </section>
+
+    <section class="chart">
+      <h2>마을이 실제로 하는 일 — 건축가가 강을 건널 다리를 놓는가</h2>
+      <p>건축가의 결정 중 봉인을 여는 강 칸에 다리를 놓은 비율. 위 곡선이 좋아지는
+         구간에서 이 값이 무너진 적이 있어서, 따로 잰다.</p>
+      <canvas id="build" width="720" height="180" role="img"
+              aria-label="밤에 따른 다리 건설 비율"></canvas>
+      <div class="keys" id="buildkeys"></div>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -170,7 +215,8 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TOKENS = ["--paper","--line","--accent","--ink","--ink-2","--ink-3","--crit","--warn",
                 "--ok","--surface","--t-water","--t-rock","--t-void","--t-hill","--t-home",
                 "--t-river","--t-square","--t-forge","--t-diner","--t-hall",
-                "--t-road","--t-wall","--t-bridge","--t-tunnel"];
+                "--t-road","--t-wall","--t-bridge","--t-tunnel",
+                "--s1","--s2","--s3"];
 let PAL = {};
 function readPalette(){
   const cs = getComputedStyle(document.documentElement);
@@ -420,8 +466,143 @@ async function tick(){
   FEED.timer = setTimeout(tick, 1000);
 }
 
+/* ── the two curves ───────────────────────────────────────
+   Both come from files the research machine publishes: live.json carries the nightly
+   probes, build.json the construction measurement, which a third process on a second
+   GPU writes without going through the relay at all. Both are copied to this origin,
+   so the charts keep working with that machine off -- which is the point, since the
+   tunnel is the flaky part. */
+const NLL = [{key:"identity", name:"정체성", tok:"--s1"},
+             {key:"fact",     name:"사실",   tok:"--s2"},
+             {key:"general",  name:"일반",   tok:"--s3"}];
+
+function fitCanvas(cv){
+  const dpr = devicePixelRatio || 1;
+  const w = cv.clientWidth || cv.width, h = Math.round(w * cv.height / cv.width);
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)){
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    cv.style.height = h + "px";
+  }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  return {g, w, h};
+}
+
+/* Axes and grid, recessive on purpose: the marks carry the reading, not the frame. */
+function axes(g, box, xmax, ymax, fmt){
+  const {x0, y0, x1, y1} = box;
+  g.font = '10px "IBM Plex Mono", ui-monospace, monospace';
+  g.textBaseline = "middle";
+  for (let i = 0; i <= 4; i++){
+    const v = ymax * i / 4, y = y1 - (y1 - y0) * i / 4;
+    g.strokeStyle = PAL["--line"]; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x0, Math.round(y) + 0.5); g.lineTo(x1, Math.round(y) + 0.5); g.stroke();
+    g.fillStyle = PAL["--ink-3"]; g.textAlign = "right";
+    g.fillText(fmt(v), x0 - 6, y);
+  }
+  g.textAlign = "center"; g.textBaseline = "top";
+  const step = Math.max(1, Math.ceil(xmax / 10));
+  for (let d = 0; d <= xmax; d += step){
+    const x = x0 + (x1 - x0) * (xmax ? d / xmax : 0);
+    g.fillText(String(d), x, y1 + 6);
+  }
+}
+
+function line(g, box, pts, xmax, ymax, colour, dash){
+  if (!pts.length) return;
+  const {x0, y0, x1, y1} = box;
+  const px = d => x0 + (x1 - x0) * (xmax ? d / xmax : 0);
+  const py = v => y1 - (y1 - y0) * Math.min(1, ymax ? v / ymax : 0);
+  g.strokeStyle = colour; g.lineWidth = 2; g.lineJoin = "round";
+  g.setLineDash(dash || []);
+  g.beginPath();
+  pts.forEach(([d, v], i) => (i ? g.lineTo(px(d), py(v)) : g.moveTo(px(d), py(v))));
+  g.stroke();
+  g.setLineDash([]);
+  /* the newest point, ringed in the surface colour so it reads over a crossing line */
+  const [d, v] = pts[pts.length - 1];
+  g.fillStyle = colour;
+  g.beginPath(); g.arc(px(d), py(v), 3.5, 0, 7); g.fill();
+  g.strokeStyle = PAL["--surface"]; g.lineWidth = 2; g.stroke();
+}
+
+/* The swatch has to be dashed when its line is, or the key cannot be matched to the
+   chart -- and dashing is the only thing separating the two reference lines from each
+   other once they are both grey. */
+function keyRow(el, items){
+  el.innerHTML = items.map(([c, name, val, dash]) => {
+    const fill = dash
+      ? `background:repeating-linear-gradient(90deg,${c} 0 ${dash[0]}px,transparent ${dash[0]}px ${dash[0] + dash[1]}px)`
+      : `background:${c}`;
+    return `<span style="color:var(--ink-2)"><b style="${fill}"></b>${name}` +
+           (val === undefined ? "" : ` <span>${val}</span>`) + `</span>`;
+  }).join("");
+}
+
+function drawNLL(days){
+  const cv = $("nll");
+  if (!cv.clientWidth) return;
+  const {g, w, h} = fitCanvas(cv);
+  const box = {x0: 42, y0: 10, x1: w - 10, y1: h - 22};
+  const series = NLL.map(sr => ({
+    ...sr, pts: days.filter(d => typeof d[sr.key] === "number" && isFinite(d[sr.key]))
+                     .map(d => [d.day, d[sr.key]])}));
+  const ymax = Math.max(1, ...series.flatMap(sr => sr.pts.map(p => p[1]))) * 1.1;
+  const xmax = Math.max(1, ...days.map(d => d.day));
+  axes(g, box, xmax, ymax, v => v.toFixed(1));
+  series.forEach(sr => line(g, box, sr.pts, xmax, ymax, PAL[sr.tok]));
+  keyRow($("nllkeys"), series.map(sr => [PAL[sr.tok], sr.name,
+    sr.pts.length ? sr.pts[sr.pts.length - 1][1].toFixed(2) : "—"]));
+}
+
+function drawBuild(state){
+  const cv = $("build");
+  if (!cv.clientWidth) return;
+  const {g, w, h} = fitCanvas(cv);
+  const box = {x0: 42, y0: 10, x1: w - 10, y1: h - 22};
+  const pts = (state.points || []).map(p => [p.day, p.rate * 100]);
+  const control = state.control ? state.control.rate * 100 : null;
+  const base = state.base ? state.base.rate * 100 : null;
+  const ymax = Math.max(2, ...pts.map(p => p[1]), control || 0, base || 0) * 1.25;
+  const xmax = Math.max(1, ...pts.map(p => p[0]));
+  axes(g, box, xmax, ymax, v => v.toFixed(1) + "%");
+  /* the two references first, dashed, so the measured line reads on top of them */
+  const flat = v => [[0, v], [xmax, v]];
+  if (control !== null) line(g, box, flat(control), xmax, ymax, PAL["--ink-3"], [4, 4]);
+  if (base !== null) line(g, box, flat(base), xmax, ymax, PAL["--ink-2"], [2, 3]);
+  line(g, box, pts, xmax, ymax, PAL["--s1"]);
+  const pc = v => v === null ? "—" : v.toFixed(1) + "%";
+  keyRow($("buildkeys"), [
+    [PAL["--s1"], "밤 학습", pts.length ? pc(pts[pts.length - 1][1]) : "아직 없음"],
+    [PAL["--ink-2"], "베이스", pc(base), [2, 3]],
+    [PAL["--ink-3"], "무작위", pc(control), [4, 4]]]);
+}
+
+const CURVES = {days: [], build: {control: null, base: null, points: []}};
+
+async function pollCurves(){
+  try {
+    const res = await fetch("live.json?t=" + Date.now(), {cache: "no-store"});
+    if (res.ok) CURVES.days = (await res.json()).days || [];
+  } catch (err){ /* the page still has whatever it drew last */ }
+  try {
+    const res = await fetch("build.json?t=" + Date.now(), {cache: "no-store"});
+    if (res.ok){
+      const got = await res.json();
+      if (!got.error) CURVES.build = got;
+    }
+  } catch (err){ /* likewise */ }
+  drawCurves();
+}
+
+function drawCurves(){
+  if (CURVES.days.length) drawNLL(CURVES.days);
+  drawBuild(CURVES.build);
+}
+
 addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
-addEventListener("resize", draw);
+addEventListener("resize", () => { draw(); drawCurves(); });
 
 let last = 0;
 function frame(ts){
@@ -441,5 +622,9 @@ function frame(ts){
 setBadge("wait", "연결 중");
 draw();
 tick();
+/* The curves move once a night, not once a frame, so they get their own slow clock and
+   are drawn from whatever the last poll left behind in between. */
+pollCurves();
+setInterval(pollCurves, 30000);
 requestAnimationFrame(frame);
 </script>
