@@ -360,7 +360,7 @@ function renderStatus(){
   if (at){
     const f = at.a;
     $("clock").textContent =
-      `${f.day}일 ${String(f.tick).padStart(2,"0")}시 ${f.step}/${D.stepsPerTick}`;
+      `${f.day}일 ${String(f.tick).padStart(2,"0")}시 ${f.step}/${D?.stepsPerTick ?? "?"}`;
     $("who").textContent = `${PLAY.cast.length}명 · ${PLAY.rate} 스텝/초`
       + (PLAY.starving ? " · 버퍼 대기" : "");
   } else {
