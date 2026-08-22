@@ -401,12 +401,23 @@ function setBadge(state, text){
   $("badge").textContent = text;
 }
 
+/* A tick is not an hour. It was when a day was 24 of them, and this printed the tick
+   number with 시 after it; the day is 120 ticks now, so the page was showing 87시. The
+   relay carries ticksPerDay and stepsPerTick, so the wall clock comes out of those and
+   stays right whatever the day is worth. */
+function wallClock(f){
+  const ticks = D?.ticksPerDay ?? 24, steps = D?.stepsPerTick ?? 6;
+  const minutes = (f.tick * steps + f.step) * (24 * 60) / (ticks * steps);
+  const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const mm = String(Math.floor(minutes % 60)).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
 function renderStatus(){
   const at = frameAt(PLAY.head === null ? -1 : PLAY.head);
   if (at){
     const f = at.a;
-    $("clock").textContent =
-      `${f.day}일 ${String(f.tick).padStart(2,"0")}시 ${f.step}/${D?.stepsPerTick ?? "?"}`;
+    $("clock").textContent = `${f.day}일 ${wallClock(f)}`;
     $("who").textContent = `${PLAY.cast.length}명 · ${PLAY.rate} 스텝/초`
       + (PLAY.starving ? " · 버퍼 대기" : "");
   } else {
