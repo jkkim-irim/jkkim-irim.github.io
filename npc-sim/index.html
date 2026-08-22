@@ -422,7 +422,21 @@ const FEED = {base: FIXED, misses: 0, timer: null};
 
 function baseOf(url){ return url.replace(/\/(state|village)\/?$/, ""); }
 
+/* stream.json first. The address moves when a tunnel dies and gets replaced, and the
+   snapshot cannot carry it: the trainer rewrites the snapshot every night from a config
+   it captured when the session started, so a replacement written into it is gone by the
+   next night -- the page went on pointing at a dead tunnel and getting HTTP 530.
+   config.stream is still read as a fallback, so an older published record still names the
+   session it came from. */
 async function findSession(){
+  try {
+    const res = await fetch("stream.json?t=" + Date.now(), {cache: "no-store"});
+    if (res.ok){
+      const got = await res.json();
+      if (got.stream) return got.stream;
+      if (got.stream === null) return "";
+    }
+  } catch (err){ /* fall through to the snapshot */ }
   const res = await fetch("live.json?t=" + Date.now(), {cache: "no-store"});
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const snap = await res.json();
