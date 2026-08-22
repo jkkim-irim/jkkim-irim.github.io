@@ -1,1 +1,1 @@
-{"control":{"decisions":347,"bridges":2,"sealed":2,"rate":0.005763688760806916,"opened":2,"runs":10,"hold":0.15561959654178675,"kinds":{"도로":42,"벽":42,"철거":3,"다리":2}},"base":null,"points":[]}
+{"control":{"decisions":347,"bridges":2,"sealed":2,"rate":0.005763688760806916,"opened":2,"runs":10,"hold":0.15561959654178675,"kinds":{"도로":42,"벽":42,"철거":3,"다리":2}},"base":{"decisions":260,"bridges":7,"sealed":7,"rate":0.026923076923076925,"opened":7,"runs":10,"hold":0.2076923076923077,"kinds":{"도로":86,"벽":22,"다리":7,"철거":9}},"points":[]}
