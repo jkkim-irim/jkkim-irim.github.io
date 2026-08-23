@@ -128,6 +128,13 @@ body{
         margin-right:6px; border-radius:1px}
 .keys span{font-family:"IBM Plex Mono",ui-monospace,monospace;
            font-variant-numeric:tabular-nums; color:var(--ink-3)}
+.pick{display:flex; gap:2px; margin:0 0 10px; padding:2px; width:max-content;
+      background:var(--sunk); border:1px solid var(--line); border-radius:5px}
+.pick button{font:inherit; font-size:11.5px; padding:3px 10px; border:0; cursor:pointer;
+             border-radius:3px; background:transparent; color:var(--ink-3)}
+.pick button[aria-selected="true"]{background:var(--surface); color:var(--ink);
+                                   box-shadow:0 0 0 1px var(--line)}
+.pick button:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
 </style>
 
 <div class="wrap">
@@ -146,11 +153,14 @@ body{
 
   <div class="charts">
     <section class="chart">
-      <h2>밤마다 재는 세 가지 — 프로브 NLL</h2>
-      <p>낮을수록 잘 안다. <b>정체성</b>은 이 사람이 누구인가, <b>사실</b>은 마을에서
-         실제로 있었던 일, <b>일반</b>은 마을과 무관한 능력.</p>
+      <h2>세 종족이 같은 시험을 본다 — 프로브 NLL</h2>
+      <p>낮을수록 잘 안다. 같은 사람에게 같은 밤에 세 가지 기억 방식으로 묻는다 —
+         <b>A</b> 검색만(가중치 고정), <b>B</b> 학습만, <b>C</b> 둘 다.
+         점선 <b>기준</b>은 학습도 검색도 없는 맨 모델이라, 곡선이 내려간 것이
+         나아진 것인지 문제집이 쉬워진 것인지를 가른다.</p>
+      <div class="pick" id="nllpick" role="tablist" aria-label="프로브 종류"></div>
       <canvas id="nll" width="720" height="200" role="img"
-              aria-label="밤에 따른 프로브 세 종의 NLL 곡선"></canvas>
+              aria-label="밤에 따른 종족별 프로브 NLL 곡선"></canvas>
       <div class="keys" id="nllkeys"></div>
     </section>
 
@@ -497,9 +507,24 @@ async function tick(){
    GPU writes without going through the relay at all. Both are copied to this origin,
    so the charts keep working with that machine off -- which is the point, since the
    tunnel is the flaky part. */
-const NLL = [{key:"identity", name:"정체성", tok:"--s1"},
-             {key:"fact",     name:"사실",   tok:"--s2"},
-             {key:"general",  name:"일반",   tok:"--s3"}];
+/* One probe at a time, four lines on it. The other way round -- one arm, three probes --
+   was what this chart did while only B existed, and the question CONCEPT asks is which
+   memory method holds up, not which probe. Twelve series on one axis is unreadable, so
+   the probe is chosen and the arms are compared.
+
+   A, B and C get the three validated hues. `raw` is not a species: it is the untouched
+   base on the untouched prompt, the only line that cannot move for any reason except the
+   exam changing. It is drawn dashed in ink, the same way the build chart draws its two
+   references, so form says "baseline" without spending a fourth hue the palette has not
+   been checked for. */
+const PROBES = [{key:"fact", name:"사실"},
+                {key:"identity", name:"정체성"},
+                {key:"general", name:"일반"}];
+const ARMS = [{pre:"A/",  name:"A 검색만",  tok:"--s1"},
+              {pre:"",    name:"B 학습만",  tok:"--s2"},
+              {pre:"C/",  name:"C 둘 다",   tok:"--s3"},
+              {pre:"raw/", name:"기준 (맨 모델)", tok:"--ink-3", dash:[5, 4]}];
+let PROBE = "fact";
 
 function fitCanvas(cv){
   const dpr = devicePixelRatio || 1;
@@ -514,13 +539,21 @@ function fitCanvas(cv){
   return {g, w, h};
 }
 
-/* Axes and grid, recessive on purpose: the marks carry the reading, not the frame. */
-function axes(g, box, xmax, ymax, fmt){
+/* Axes and grid, recessive on purpose: the marks carry the reading, not the frame.
+
+   ymin defaults to 0 and the build chart leaves it there, because a rate is a share and a
+   share starts at nothing. The NLL chart passes one: identity sits between 3.2 and 4.3 for
+   every arm, so a zero floor spent three quarters of the plot on empty space and the four
+   lines it is there to separate arrived on top of each other. A log loss has no meaningful
+   zero to be read against, and every tick carries its number, so the floor is stated
+   rather than assumed. */
+function axes(g, box, xmax, ymax, fmt, ymin){
+  ymin = ymin || 0;
   const {x0, y0, x1, y1} = box;
   g.font = '10px "IBM Plex Mono", ui-monospace, monospace';
   g.textBaseline = "middle";
   for (let i = 0; i <= 4; i++){
-    const v = ymax * i / 4, y = y1 - (y1 - y0) * i / 4;
+    const v = ymin + (ymax - ymin) * i / 4, y = y1 - (y1 - y0) * i / 4;
     g.strokeStyle = PAL["--line"]; g.lineWidth = 1;
     g.beginPath(); g.moveTo(x0, Math.round(y) + 0.5); g.lineTo(x1, Math.round(y) + 0.5); g.stroke();
     g.fillStyle = PAL["--ink-3"]; g.textAlign = "right";
@@ -534,11 +567,13 @@ function axes(g, box, xmax, ymax, fmt){
   }
 }
 
-function line(g, box, pts, xmax, ymax, colour, dash){
+function line(g, box, pts, xmax, ymax, colour, dash, ymin){
   if (!pts.length) return;
+  ymin = ymin || 0;
   const {x0, y0, x1, y1} = box;
   const px = d => x0 + (x1 - x0) * (xmax ? d / xmax : 0);
-  const py = v => y1 - (y1 - y0) * Math.min(1, ymax ? v / ymax : 0);
+  const py = v => y1 - (y1 - y0) *
+                  Math.max(0, Math.min(1, ymax > ymin ? (v - ymin) / (ymax - ymin) : 0));
   g.strokeStyle = colour; g.lineWidth = 2; g.lineJoin = "round";
   g.setLineDash(dash || []);
   g.beginPath();
@@ -565,20 +600,38 @@ function keyRow(el, items){
   }).join("");
 }
 
+function nllPicker(days){
+  const el = $("nllpick");
+  const has = k => days.some(d => typeof d[k] === "number" && isFinite(d[k]));
+  el.innerHTML = PROBES.map(p =>
+    `<button role="tab" data-k="${p.key}" aria-selected="${p.key === PROBE}"` +
+    `${has(p.key) ? "" : " disabled"}>${p.name}</button>`).join("");
+  el.querySelectorAll("button").forEach(b => b.onclick = () => {
+    PROBE = b.dataset.k; nllPicker(days); drawNLL(days);
+  });
+}
+
 function drawNLL(days){
   const cv = $("nll");
   if (!cv.clientWidth) return;
   const {g, w, h} = fitCanvas(cv);
   const box = {x0: 42, y0: 10, x1: w - 10, y1: h - 22};
-  const series = NLL.map(sr => ({
-    ...sr, pts: days.filter(d => typeof d[sr.key] === "number" && isFinite(d[sr.key]))
-                     .map(d => [d.day, d[sr.key]])}));
-  const ymax = Math.max(1, ...series.flatMap(sr => sr.pts.map(p => p[1]))) * 1.1;
+  const series = ARMS.map(a => {
+    const k = a.pre + PROBE;
+    return {...a, pts: days.filter(d => typeof d[k] === "number" && isFinite(d[k]))
+                           .map(d => [d.day, d[k]])};
+  });
+  const vals = series.flatMap(sr => sr.pts.map(p => p[1]));
+  const lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.12 || 0.1;
+  // Snap the floor to zero when the data nearly reaches it anyway; otherwise the span is
+  // what is worth looking at.
+  const ymin = lo - pad < hi * 0.15 ? 0 : lo - pad;
+  const ymax = hi + pad;
   const xmax = Math.max(1, ...days.map(d => d.day));
-  axes(g, box, xmax, ymax, v => v.toFixed(1));
-  series.forEach(sr => line(g, box, sr.pts, xmax, ymax, PAL[sr.tok]));
-  keyRow($("nllkeys"), series.map(sr => [PAL[sr.tok], sr.name,
-    sr.pts.length ? sr.pts[sr.pts.length - 1][1].toFixed(2) : "—"]));
+  axes(g, box, xmax, ymax, v => v.toFixed(1), ymin);
+  series.forEach(sr => line(g, box, sr.pts, xmax, ymax, PAL[sr.tok], sr.dash, ymin));
+  keyRow($("nllkeys"), series.filter(sr => sr.pts.length).map(sr =>
+    [PAL[sr.tok], sr.name, sr.pts[sr.pts.length - 1][1].toFixed(2), sr.dash]));
 }
 
 function drawBuild(state){
@@ -622,7 +675,7 @@ async function pollCurves(){
 }
 
 function drawCurves(){
-  if (CURVES.days.length) drawNLL(CURVES.days);
+  if (CURVES.days.length){ nllPicker(CURVES.days); drawNLL(CURVES.days); }
   drawBuild(CURVES.build);
 }
 
