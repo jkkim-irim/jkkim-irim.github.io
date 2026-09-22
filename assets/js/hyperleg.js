@@ -92,8 +92,9 @@ async function initWalker(canvas) {
         draco.load(url, (geo) => {
             geo.computeVertexNormals();
             done(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: colorFor(url.split('/').pop()), roughness: 0.6, metalness: 0.25 })));
-        }, undefined, (e) => { console.error('[hyperleg] mesh failed:', url.split('/').pop()); done(null, e); });
+        }, undefined, (e) => { console.error('[hyperleg] mesh failed:', url.split('/').pop()); failedMeshes++; done(null, e); });
     };
+    let failedMeshes = 0; // visuals that will never get a mesh; excluded from the fit wait
     const allLoaded = new Promise(res => { manager.onLoad = res; });
 
     console.log('[hyperleg] loading URDF…');
@@ -144,10 +145,24 @@ async function initWalker(canvas) {
         fit.scale.setScalar(targetH / robotH);
         robotScreenH = targetH;
     }
+    // Every visual in the URDF must be attached before measuring: Draco decodes in a
+    // worker and meshes land one per frame, so a partial box would lock in a wrong
+    // scale/centre (the intermittent "broken HyperLeg" bug).
+    function allVisualsAttached() {
+        let pending = 0;
+        robot.traverse(o => {
+            if (!o.isURDFVisual) return;
+            let hasMesh = false;
+            o.traverse(c => { if (c.isMesh) hasMesh = true; });
+            if (!hasMesh) pending++;
+        });
+        return pending <= failedMeshes;
+    }
     function tryFit() {
+        if (!allVisualsAttached()) return false;    // geometry not fully attached yet
         robot.updateMatrixWorld(true);
         const size = new THREE.Box3().setFromObject(robot).getSize(new THREE.Vector3());
-        if (size.y < 1e-4) return false;            // geometry not attached yet
+        if (size.y < 1e-4) return false;
         robot.updateMatrixWorld(true);
         const center = new THREE.Box3().setFromObject(robot).getCenter(new THREE.Vector3());
         robot.position.sub(center);
