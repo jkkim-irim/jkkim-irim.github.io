@@ -8,11 +8,11 @@ category: work
 related_publications: false
 ---
 
-🏆 **1st place out of 99 teams nationwide — Grand Prize (UCLA RoMeLa Director's Award).**
+🏆 **1st place out of 112 teams nationwide — Grand Prize (UCLA RoMeLa Director's Award).**
 2023 Robot Utilization Idea Competition.
 
 Building on **Prof. Dennis Hong's "Sky-Jump" jumping robot**, our team proposed a
-*reusable* Sky-Jump robot design. The idea took 1st place out of 99 teams nationwide and
+*reusable* Sky-Jump robot design. The idea took 1st place out of 112 teams nationwide and
 received the Grand Prize (UCLA RoMeLa Director's Award), presented by RoMeLa director
 Prof. Dennis Hong.
 
