@@ -1,0 +1,17 @@
+---
+layout: null
+permalink: /cv/
+title: CV
+nav: false
+---
+{%- assign cv_pdf = '/assets/pdf/CV_Joong-Gil_Kim.pdf' | relative_url -%}
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8">
+  <title>CV - Joong-Gil Kim</title>
+  <link rel="canonical" href="{{ cv_pdf }}">
+  <script>location.replace("{{ cv_pdf }}");</script>
+  <meta http-equiv="refresh" content="0; url={{ cv_pdf }}">
+  <meta name="robots" content="noindex">
+  <a href="{{ cv_pdf }}">Open CV (PDF)</a>
+</html>
