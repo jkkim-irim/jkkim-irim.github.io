@@ -6,8 +6,8 @@ subtitle: Master Student · Korea University of Technology and Education
 
 profile:
   align: left
-  image: prof_pic.png
-  image_circular: false # image is already a circular crop (transparent corners)
+  image: prof_pic_cards.png
+  image_circular: false # rectangular illustrated card; a circle crop would cut off the labels
   # more_info removed — no address block under the photo
 # Sections (publications / experience / projects) and link buttons are rendered
 # by the single-page layout in _layouts/about.liquid.
