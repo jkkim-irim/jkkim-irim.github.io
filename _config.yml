@@ -99,7 +99,7 @@ max_width: 930px
 # see https://schema.org/docs/faq.html for more information
 serve_og_meta: true # Include Open Graph meta tags in the HTML head
 serve_schema_org: false # Include Schema.org in the HTML head
-og_image: https://jkkim-irim.github.io/assets/img/prof_pic.png # site-wide social-share preview image (absolute URL for scrapers)
+og_image: https://jkkim-irim.github.io/assets/img/prof_pic_cards.png # site-wide social-share preview image (absolute URL for scrapers)
 
 # -----------------------------------------------------------------------------
 # Analytics and search engine verification
